@@ -1071,8 +1071,9 @@ async function buildAnnotatedFeedbackPdf(student, g, max) {
   var feedbackPage = pdfDoc.addPage([595, 842]); // A4
   await drawFeedbackPage(feedbackPage, pdfDoc, student, g, max);
 
-  // 5. Return bytes
-  return pdfDoc.save();
+  // 5. Return bytes as Uint8Array
+  var bytes = await pdfDoc.save();
+  return new Uint8Array(bytes);
 }
 
 function hexToRgb(hex) {
@@ -1103,89 +1104,90 @@ async function getOriginalPdfBytes(student) {
 }
 
 async function drawFeedbackPage(page, pdfDoc, student, g, max) {
-  var helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-  var helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  // pdf-lib from CDN exposes fonts differently — use safe fallback
+  var helvetica, helveticaBold;
+  try {
+    helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+    helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  } catch(e) {
+    // Fallback: some CDN builds use string literals
+    try {
+      helvetica = await pdfDoc.embedFont('Helvetica');
+      helveticaBold = await pdfDoc.embedFont('Helvetica-Bold');
+    } catch(e2) {
+      console.warn('Font embed failed, using default');
+      helvetica = undefined;
+      helveticaBold = undefined;
+    }
+  }
+
   var pw = page.getWidth(), ph = page.getHeight();
-  var margin = 50, y = ph - margin, lineH = 18, col = PDFLib.rgb;
+  var margin = 50, y = ph - margin, lineH = 18;
+  var black = PDFLib.rgb(0.1, 0.1, 0.1);
+  var indigo = PDFLib.rgb(0.31, 0.27, 0.9);
+  var grey = PDFLib.rgb(0.6, 0.6, 0.6);
+  var white = PDFLib.rgb(1, 1, 1);
+  var lightgrey = PDFLib.rgb(0.95, 0.95, 0.98);
 
   function drawText(text, x, yPos, opts) {
     opts = opts || {};
-    try {
-      page.drawText(String(text), {
-        x: x, y: yPos,
-        size: opts.size || 11,
-        font: opts.bold ? helveticaBold : helvetica,
-        color: opts.color || col(0.1, 0.1, 0.1),
-        maxWidth: opts.maxWidth || (pw - margin*2),
-      });
-    } catch(e) {}
+    var fontToUse = opts.bold ? helveticaBold : helvetica;
+    var textOpts = {
+      x: x, y: yPos,
+      size: opts.size || 11,
+      color: opts.color || black,
+    };
+    if (fontToUse) textOpts.font = fontToUse;
+    if (opts.maxWidth) textOpts.maxWidth = opts.maxWidth;
+    try { page.drawText(String(text||''), textOpts); } catch(e) { console.warn('drawText failed:', e.message); }
   }
 
   function drawRect(x, yPos, w, h, fillColor, opacity) {
-    page.drawRectangle({x:x, y:yPos, width:w, height:h, color:fillColor, opacity:opacity||1});
+    try { page.drawRectangle({x:x,y:yPos,width:w,height:h,color:fillColor,opacity:opacity||1}); } catch(e) {}
   }
 
-  function drawLine(x1, y1, x2, y2) {
-    page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:0.5,color:col(0.8,0.8,0.8)});
+  function drawHRule(yPos) {
+    try { page.drawLine({start:{x:margin,y:yPos},end:{x:pw-margin,y:yPos},thickness:0.5,color:PDFLib.rgb(0.8,0.8,0.8)}); } catch(e) {}
   }
 
-  // Header bar
-  drawRect(0, ph-70, pw, 70, col(0.31,0.27,0.9));
-  drawText('Assessment Feedback', margin, ph-35, {size:18, bold:true, color:col(1,1,1)});
-  drawText(state.config.unitName, margin, ph-55, {size:10, color:col(0.8,0.8,1)});
+  // Header
+  drawRect(0, ph-65, pw, 65, indigo);
+  drawText('Assessment Feedback', margin, ph-30, {size:16, bold:true, color:white});
+  drawText(state.config.unitName, margin, ph-50, {size:10, color:PDFLib.rgb(0.8,0.8,1)});
 
-  y = ph - 90;
-
-  // Student info
+  y = ph - 82;
   drawText('Student: '+student.name+' ('+student.id+')', margin, y, {size:10, bold:true}); y -= lineH;
-  var grade = g ? (g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:g.mark1!==undefined?g.mark1:'—') : '—';
-  var pct = max>0 && grade!=='—' ? Math.round(grade/max*100)+'%' : '';
-  drawText('Final Grade: '+grade+' / '+max+(pct?' ('+pct+')':''), margin, y, {size:10, bold:true, color:col(0.31,0.27,0.9)}); y -= lineH*1.5;
-  drawLine(margin, y+4, pw-margin, y+4); y -= lineH*0.5;
+  var grade = g ? (g.moderatorGrade!==undefined ? g.moderatorGrade : g.finalGrade!==undefined ? g.finalGrade : g.mark1!==undefined ? g.mark1 : '—') : '—';
+  var pct = (max>0 && grade!=='—') ? ' ('+Math.round(grade/max*100)+'%)' : '';
+  drawText('Final Grade: '+grade+' / '+max+pct, margin, y, {size:11, bold:true, color:indigo}); y -= lineH*1.5;
+  drawHRule(y+4); y -= 12;
 
-  // Rubric criteria
   drawText('Rubric Breakdown', margin, y, {size:13, bold:true}); y -= lineH*1.4;
-  var criteria = g && g.criteria ? g.criteria : {};
 
+  var criteria = g && g.criteria ? g.criteria : {};
   state.rubric.criteria.forEach(function(c) {
-    if (y < margin + 60) { return; } // skip if running out of space
+    if (y < margin + 50) return;
     var e = criteria[c.id];
-    // Criterion header row
-    drawRect(margin, y-2, pw-margin*2, lineH+6, col(0.95,0.95,0.98));
-    drawText(c.name, margin+6, y+2, {size:10, bold:true});
-    var scoreStr = e ? (e.marks+' / '+c.maxMark) : ('— / '+c.maxMark);
-    drawText(scoreStr, pw-margin-50, y+2, {size:10, bold:true, color:col(0.31,0.27,0.9)});
-    y -= lineH + 6;
+    // Row background
+    drawRect(margin, y-4, pw-margin*2, lineH+6, lightgrey);
+    drawText(c.name, margin+6, y, {size:10, bold:true});
+    drawText((e ? e.marks : '—')+' / '+c.maxMark, pw-margin-55, y, {size:10, bold:true, color:indigo});
+    y -= lineH + 8;
 
     if (e) {
-      // Level badge
-      drawRect(margin, y-2, 140, lineH+2, col(0.31,0.27,0.9));
-      drawText(e.label, margin+4, y+1, {size:9, color:col(1,1,1)});
+      drawRect(margin, y-2, 130, lineH, indigo);
+      drawText(e.label, margin+4, y+1, {size:9, color:white});
       y -= lineH + 4;
-      // Descriptor
-      if (e.desc) {
-        drawText(e.desc, margin+4, y, {size:9, color:col(0.45,0.45,0.45), maxWidth:pw-margin*2-8});
-        y -= lineH + 2;
-      }
-      // Comment
-      if (e.comment) {
-        drawRect(margin, y-2, 3, lineH+2, col(0.31,0.27,0.9));
-        drawText(e.comment, margin+10, y, {size:9, maxWidth:pw-margin*2-14});
-        y -= lineH + 4;
-      }
+      if (e.desc) { drawText(e.desc, margin+4, y, {size:9, color:grey, maxWidth:pw-margin*2-8}); y -= lineH+2; }
+      if (e.comment) { drawRect(margin, y-2, 3, lineH, indigo); drawText(e.comment, margin+10, y, {size:9, color:black, maxWidth:pw-margin*2-14}); y -= lineH+4; }
     } else {
-      drawText('Not marked', margin+4, y, {size:9, color:col(0.6,0.6,0.6)});
-      y -= lineH;
+      drawText('Not marked', margin+4, y, {size:9, color:grey}); y -= lineH;
     }
-    y -= 4;
-    drawLine(margin, y+2, pw-margin, y+2);
-    y -= 8;
+    y -= 4; drawHRule(y+2); y -= 8;
   });
 
-  // Overall comments
   if (g && g.overallComment && y > margin+40) {
-    y -= 4;
-    drawText('Overall Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
+    y -= 4; drawText('Overall Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
     drawText(g.overallComment, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
   }
   if (g && g.overallComment2 && y > margin+40) {
@@ -1193,12 +1195,11 @@ async function drawFeedbackPage(page, pdfDoc, student, g, max) {
     drawText(g.overallComment2, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
   }
   if (g && g.moderatorNotes && y > margin+30) {
-    drawText('Moderator Note: '+g.moderatorNotes, margin, y, {size:9, color:col(0.5,0.5,0.5), maxWidth:pw-margin*2});
+    drawText('Moderator Note: '+g.moderatorNotes, margin, y, {size:9, color:grey, maxWidth:pw-margin*2});
   }
 
-  // Footer
-  drawLine(margin, margin+20, pw-margin, margin+20);
-  drawText('Generated by RubricMark — '+new Date().toLocaleDateString(), margin, margin+6, {size:8, color:col(0.6,0.6,0.6)});
+  drawHRule(margin+20);
+  drawText('Generated by RubricMark — '+new Date().toLocaleDateString(), margin, margin+6, {size:8, color:grey});
 }
 function renderExportPreview(){
   var el=document.getElementById('export-preview'),cl=document.getElementById('export-checklist');if(!el||!cl)return;
