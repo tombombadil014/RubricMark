@@ -385,7 +385,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 </div>
 
 <script>
-var CLIENT_ID    = 'ccca83e7-7a6d-41f0-a304-7bfbee3c1179';
+var CLIENT_ID    = 'YOUR_CLIENT_ID_HERE';
 var REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
 var SCOPES       = ['User.Read','Files.ReadWrite'];
 var DEMO_MODE    = (CLIENT_ID === 'YOUR_CLIENT_ID_HERE');
@@ -1011,7 +1011,195 @@ function saveModerationOverride(){
   saveGrades();closeModerationModal();updateDashboard();
 }
 
-// ─── EXPORT ───────────────────────────────────────────────────────────────────
+// ─── PDF BURN-IN & FEEDBACK ───────────────────────────────────────────────────
+
+async function buildAnnotatedFeedbackPdf(student, g, max) {
+  // 1. Get original PDF bytes
+  var originalBytes = await getOriginalPdfBytes(student);
+
+  // 2. Load with PDF-lib
+  var pdfDoc = await PDFLib.PDFDocument.load(originalBytes);
+
+  // 3. Burn annotations onto pages
+  var anns = state.annotations[student.id] || [];
+  if (anns.length > 0) {
+    var pages = pdfDoc.getPages();
+    // Group annotations by page (default page 1 = index 0 for now)
+    // In future: store page number per annotation
+    var page = pages[0];
+    var pw = page.getWidth(), ph = page.getHeight();
+    // The canvas renders at state.pdfScale, so we need to convert back to PDF points
+    var canvasEl = document.getElementById('pdf-canvas');
+    var scaleX = canvasEl ? pw / canvasEl.width : 1;
+    var scaleY = canvasEl ? ph / canvasEl.height : 1;
+
+    anns.forEach(function(a) {
+      if (a.type === 'stroke' || a.type === 'highlight') {
+        if (!a.points || a.points.length < 2) return;
+        var alpha = a.type === 'highlight' ? 0.3 : 1.0;
+        var lw = a.type === 'highlight' ? 12 : (a.eraser ? 0 : a.size);
+        if (a.eraser) return; // skip eraser strokes in export
+        var col = hexToRgb(a.color);
+        for (var i = 1; i < a.points.length; i++) {
+          var x1 = a.points[i-1].x * scaleX;
+          var y1 = ph - (a.points[i-1].y * scaleY);
+          var x2 = a.points[i].x * scaleX;
+          var y2 = ph - (a.points[i].y * scaleY);
+          page.drawLine({
+            start:{x:x1,y:y1}, end:{x:x2,y:y2},
+            thickness: lw * scaleX,
+            color: PDFLib.rgb(col.r, col.g, col.b),
+            opacity: alpha
+          });
+        }
+      } else if (a.type === 'text') {
+        var col = hexToRgb(a.color);
+        var tx = a.x * scaleX;
+        var ty = ph - (a.y * scaleY);
+        try {
+          page.drawText(a.text, {
+            x: tx, y: ty,
+            size: 11,
+            color: PDFLib.rgb(col.r, col.g, col.b),
+          });
+        } catch(e) { console.warn('Text annotation draw failed:', e); }
+      }
+    });
+  }
+
+  // 4. Append rubric feedback page
+  var feedbackPage = pdfDoc.addPage([595, 842]); // A4
+  await drawFeedbackPage(feedbackPage, pdfDoc, student, g, max);
+
+  // 5. Return bytes
+  return pdfDoc.save();
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  return {
+    r: parseInt(hex.substring(0,2),16)/255,
+    g: parseInt(hex.substring(2,4),16)/255,
+    b: parseInt(hex.substring(4,6),16)/255
+  };
+}
+
+async function getOriginalPdfBytes(student) {
+  // In demo mode or no PDF, return a blank A4 PDF
+  if (DEMO_MODE || state.accessToken === 'demo_token' || !student.pdfItemId) {
+    var blank = await PDFLib.PDFDocument.create();
+    blank.addPage([595,842]);
+    return blank.save();
+  }
+  var driveId = state.config.sharedDriveId;
+  var path = driveId
+    ? '/drives/'+driveId+'/items/'+student.pdfItemId+'/content'
+    : '/me/drive/items/'+student.pdfItemId+'/content';
+  await acquireTokenSilent();
+  var res = await fetch(GRAPH+path, {headers:{Authorization:'Bearer '+state.accessToken}});
+  if (!res.ok) throw new Error('Could not fetch PDF: '+res.status);
+  return new Uint8Array(await res.arrayBuffer());
+}
+
+async function drawFeedbackPage(page, pdfDoc, student, g, max) {
+  var helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+  var helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  var pw = page.getWidth(), ph = page.getHeight();
+  var margin = 50, y = ph - margin, lineH = 18, col = PDFLib.rgb;
+
+  function drawText(text, x, yPos, opts) {
+    opts = opts || {};
+    try {
+      page.drawText(String(text), {
+        x: x, y: yPos,
+        size: opts.size || 11,
+        font: opts.bold ? helveticaBold : helvetica,
+        color: opts.color || col(0.1, 0.1, 0.1),
+        maxWidth: opts.maxWidth || (pw - margin*2),
+      });
+    } catch(e) {}
+  }
+
+  function drawRect(x, yPos, w, h, fillColor, opacity) {
+    page.drawRectangle({x:x, y:yPos, width:w, height:h, color:fillColor, opacity:opacity||1});
+  }
+
+  function drawLine(x1, y1, x2, y2) {
+    page.drawLine({start:{x:x1,y:y1},end:{x:x2,y:y2},thickness:0.5,color:col(0.8,0.8,0.8)});
+  }
+
+  // Header bar
+  drawRect(0, ph-70, pw, 70, col(0.31,0.27,0.9));
+  drawText('Assessment Feedback', margin, ph-35, {size:18, bold:true, color:col(1,1,1)});
+  drawText(state.config.unitName, margin, ph-55, {size:10, color:col(0.8,0.8,1)});
+
+  y = ph - 90;
+
+  // Student info
+  drawText('Student: '+student.name+' ('+student.id+')', margin, y, {size:10, bold:true}); y -= lineH;
+  var grade = g ? (g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:g.mark1!==undefined?g.mark1:'—') : '—';
+  var pct = max>0 && grade!=='—' ? Math.round(grade/max*100)+'%' : '';
+  drawText('Final Grade: '+grade+' / '+max+(pct?' ('+pct+')':''), margin, y, {size:10, bold:true, color:col(0.31,0.27,0.9)}); y -= lineH*1.5;
+  drawLine(margin, y+4, pw-margin, y+4); y -= lineH*0.5;
+
+  // Rubric criteria
+  drawText('Rubric Breakdown', margin, y, {size:13, bold:true}); y -= lineH*1.4;
+  var criteria = g && g.criteria ? g.criteria : {};
+
+  state.rubric.criteria.forEach(function(c) {
+    if (y < margin + 60) { return; } // skip if running out of space
+    var e = criteria[c.id];
+    // Criterion header row
+    drawRect(margin, y-2, pw-margin*2, lineH+6, col(0.95,0.95,0.98));
+    drawText(c.name, margin+6, y+2, {size:10, bold:true});
+    var scoreStr = e ? (e.marks+' / '+c.maxMark) : ('— / '+c.maxMark);
+    drawText(scoreStr, pw-margin-50, y+2, {size:10, bold:true, color:col(0.31,0.27,0.9)});
+    y -= lineH + 6;
+
+    if (e) {
+      // Level badge
+      drawRect(margin, y-2, 140, lineH+2, col(0.31,0.27,0.9));
+      drawText(e.label, margin+4, y+1, {size:9, color:col(1,1,1)});
+      y -= lineH + 4;
+      // Descriptor
+      if (e.desc) {
+        drawText(e.desc, margin+4, y, {size:9, color:col(0.45,0.45,0.45), maxWidth:pw-margin*2-8});
+        y -= lineH + 2;
+      }
+      // Comment
+      if (e.comment) {
+        drawRect(margin, y-2, 3, lineH+2, col(0.31,0.27,0.9));
+        drawText(e.comment, margin+10, y, {size:9, maxWidth:pw-margin*2-14});
+        y -= lineH + 4;
+      }
+    } else {
+      drawText('Not marked', margin+4, y, {size:9, color:col(0.6,0.6,0.6)});
+      y -= lineH;
+    }
+    y -= 4;
+    drawLine(margin, y+2, pw-margin, y+2);
+    y -= 8;
+  });
+
+  // Overall comments
+  if (g && g.overallComment && y > margin+40) {
+    y -= 4;
+    drawText('Overall Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
+    drawText(g.overallComment, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
+  }
+  if (g && g.overallComment2 && y > margin+40) {
+    drawText('Second Marker Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
+    drawText(g.overallComment2, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
+  }
+  if (g && g.moderatorNotes && y > margin+30) {
+    drawText('Moderator Note: '+g.moderatorNotes, margin, y, {size:9, color:col(0.5,0.5,0.5), maxWidth:pw-margin*2});
+  }
+
+  // Footer
+  drawLine(margin, margin+20, pw-margin, margin+20);
+  drawText('Generated by RubricMark — '+new Date().toLocaleDateString(), margin, margin+6, {size:8, color:col(0.6,0.6,0.6)});
+}
 function renderExportPreview(){
   var el=document.getElementById('export-preview'),cl=document.getElementById('export-checklist');if(!el||!cl)return;
   var max=getTotalMaxMarks();
