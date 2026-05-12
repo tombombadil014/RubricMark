@@ -1263,6 +1263,9 @@ function showTab(tab){
 }
 
 if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+console.log('PDFLib available:', typeof PDFLib !== 'undefined');
+console.log('pdfjsLib available:', typeof pdfjsLib !== 'undefined');
+console.log('JSZip available:', typeof JSZip !== 'undefined');
 </script>
 </body>
 </html>
