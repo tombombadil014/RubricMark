@@ -20,8 +20,6 @@ html,body{height:100vh;width:100%;overflow:hidden;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6}
 button{cursor:pointer;font-family:inherit;font-size:14px}
 input,select,textarea{font-family:inherit;font-size:14px;outline:none}
-
-/* ── APP SHELL ───────────────────────────────────── */
 #app{position:fixed;top:0;left:0;right:0;bottom:0;display:flex;flex-direction:column;overflow:hidden}
 #topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;gap:.75rem;height:52px;flex-shrink:0;flex-wrap:wrap;z-index:100}
 #topbar h1{font-size:16px;font-weight:600;color:var(--primary);white-space:nowrap}
@@ -31,11 +29,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 .nav-tab.active{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
 .user-badge{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-shrink:0}
 .avatar{background:var(--primary-light);color:var(--primary);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:11px;flex-shrink:0}
-
-/* ── MAIN LAYOUT ─────────────────────────────────── */
 #main{display:flex;flex:1;overflow:hidden;position:relative;min-height:0}
-
-/* ── SIDEBAR ─────────────────────────────────────── */
 #sidebar{width:270px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:width .2s;overflow:hidden;min-height:0}
 #sidebar.collapsed{width:0;border-right:none}
 #sidebar-header{padding:1rem;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -55,13 +49,9 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 .badge-complete{background:#f0fdf4;color:#166534}
 #sidebar-footer{padding:.75rem;border-top:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:.4rem}
 #sidebar-expand-btn{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:50;background:var(--surface);border:1px solid var(--border);border-left:none;border-radius:0 var(--radius) var(--radius) 0;padding:10px 5px;cursor:pointer;font-size:14px;line-height:1;box-shadow:2px 0 4px rgba(0,0,0,.06)}
-
-/* ── CONTENT AREA ────────────────────────────────── */
 #content-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 #tab-dashboard,#tab-rubric,#tab-moderation,#tab-export,#tab-settings{flex:1;overflow-y:auto;padding:1.5rem;min-height:0}
 #tab-mark{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
-
-/* ── CARDS / BUTTONS / FORMS ─────────────────────── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem}
 .card h3{font-size:15px;font-weight:600;margin-bottom:1rem}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-weight:500;font-size:13px;transition:all .15s;cursor:pointer}
@@ -76,8 +66,6 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 .form-group input,.form-group select,.form-group textarea{width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;background:var(--surface);color:var(--text)}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
 .form-group textarea{resize:vertical;min-height:80px}
-
-/* ── MARKING LAYOUT ──────────────────────────────── */
 #marking-header{padding:.75rem 1.5rem;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface)}
 #marking-layout{flex:1;display:grid;grid-template-columns:1fr 28px 420px;overflow:hidden;min-height:0;transition:grid-template-columns .2s}
 #marking-layout.panel-hidden{grid-template-columns:1fr 28px 0px}
@@ -86,8 +74,6 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 #rubric-toggle-btn{display:flex;align-items:center;justify-content:center;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);cursor:pointer;font-size:16px;color:var(--muted);transition:background .15s;flex-shrink:0}
 #rubric-toggle-btn:hover{background:var(--bg);color:var(--text)}
 #marking-panel{overflow-y:auto;flex:1;padding:.75rem;display:flex;flex-direction:column;gap:.75rem;min-height:0}
-
-/* ── PDF PANEL ───────────────────────────────────── */
 #pdf-panel{background:#2d2d2d;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 #pdf-toolbar{background:#1a1a1a;padding:.5rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;flex-shrink:0}
 #pdf-toolbar button{background:#333;color:#fff;border:none;border-radius:4px;padding:4px 8px;font-size:12px;cursor:pointer}
@@ -96,8 +82,6 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 #pdf-toolbar select{background:#333;color:#fff;border:none;border-radius:4px;padding:4px;font-size:12px}
 #pdf-canvas-wrap{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;justify-content:center;align-items:flex-start;padding:.75rem;overscroll-behavior:contain;min-height:0}
 #pdf-canvas-inner{position:relative;display:inline-block}
-
-/* ── RUBRIC MARKING ──────────────────────────────── */
 .criterion-mark{border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;background:var(--surface)}
 .criterion-mark h4{font-size:14px;font-weight:600;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center}
 .criterion-mark h4 .max-mark{font-weight:400;color:var(--muted);font-size:12px}
@@ -109,45 +93,30 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 .criterion-comment{width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:6px 8px;font-size:13px;resize:vertical;min-height:50px;font-family:inherit}
 .criterion-comment:focus{border-color:var(--primary);outline:none}
 .score-display{font-size:13px;font-weight:600;color:var(--primary)}
-
-/* ── TABLES ──────────────────────────────────────── */
 .overview-table{width:100%;border-collapse:collapse;font-size:14px}
 .overview-table th{text-align:left;padding:.5rem .75rem;border-bottom:2px solid var(--border);font-weight:600;font-size:13px;color:var(--muted)}
 .overview-table td{padding:.5rem .75rem;border-bottom:1px solid var(--border)}
 .overview-table tr:hover td{background:var(--bg)}
-
-/* ── MODAL ───────────────────────────────────────── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:999;padding:1rem}
 .modal{background:var(--surface);border-radius:var(--radius-lg);padding:1.5rem;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
 .modal h2{font-size:18px;font-weight:600;margin-bottom:1rem}
 .modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
-
-/* ── AUTH ────────────────────────────────────────── */
 #auth-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg)}
 .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;max-width:420px;width:100%;text-align:center}
 .auth-card h1{font-size:22px;font-weight:600;color:var(--primary);margin-bottom:.5rem}
 .ms-btn{display:inline-flex;align-items:center;gap:10px;background:#0078d4;color:#fff;border:none;border-radius:var(--radius);padding:10px 20px;font-size:15px;font-weight:500;cursor:pointer;width:100%;justify-content:center}
 .ms-btn:hover{background:#006cbd}
-
-/* ── SETUP ───────────────────────────────────────── */
 #setup-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:1rem}
 .setup-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;max-width:540px;width:100%}
 .setup-card h2{font-size:18px;font-weight:600;margin-bottom:.25rem}
-
-/* ── STATS ───────────────────────────────────────── */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-bottom:1.5rem}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem}
 .stat-card .stat-val{font-size:24px;font-weight:500;color:var(--primary)}
 .stat-card .stat-lbl{font-size:13px;color:var(--muted);margin-top:2px}
-
-/* ── FOLDER PICKER ───────────────────────────────── */
 .folder-item{display:flex;align-items:center;gap:.6rem;padding:.6rem .75rem;cursor:pointer;border-bottom:1px solid var(--border);font-size:14px;transition:background .1s}
 .folder-item:hover{background:var(--bg)}
-
-/* ── ANNOTATIONS ─────────────────────────────────── */
 .ann-color{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer;display:inline-block;flex-shrink:0}
 .ann-color.active-color{border-color:#fff;box-shadow:0 0 0 2px var(--primary)}
-
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
@@ -234,7 +203,6 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
   </div>
 
   <div id="main">
-    <!-- SIDEBAR -->
     <div id="sidebar">
       <div id="sidebar-header">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
@@ -252,12 +220,13 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 
     <button id="sidebar-expand-btn" onclick="toggleSidebar()" class="hidden" title="Expand submissions">»</button>
 
-    <!-- CONTENT -->
     <div id="content-wrap">
 
       <!-- DASHBOARD -->
-      <div id="tab-dashboard"><div class="stats-row" id="stats-row"></div>
-        <div class="card"><h3>All submissions</h3>
+      <div id="tab-dashboard">
+        <div class="stats-row" id="stats-row"></div>
+        <div class="card">
+          <h3>All submissions</h3>
           <table class="overview-table">
             <thead><tr><th>Student</th><th>ID</th><th>1st</th><th>2nd</th><th>Final</th><th>Status</th><th></th></tr></thead>
             <tbody id="overview-body"></tbody>
@@ -285,7 +254,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
           </div>
           <div id="marking-layout">
             <div id="pdf-panel"></div>
-            <div id="rubric-toggle-btn" onclick="toggleRubricPanel()" title="Toggle rubric panel">‹</div>
+            <div id="rubric-toggle-btn" onclick="toggleRubricPanel()" title="Toggle rubric panel">&#8249;</div>
             <div id="marking-panel-wrap">
               <div id="marking-panel"></div>
             </div>
@@ -306,6 +275,18 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
           <div id="criteria-builder"></div>
           <div style="margin-top:.75rem;padding:.75rem;background:var(--bg);border-radius:var(--radius);font-size:13px;color:var(--muted)">
             Total marks: <strong id="total-marks-display">0</strong>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Import / Export CSV</h3>
+          <p class="text-muted" style="margin-bottom:1rem">Edit your rubric in Excel, then import it back. Each row is one performance level.</p>
+          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;font-size:12px;color:var(--muted);margin-bottom:1rem;font-family:monospace;word-break:break-all">
+            criterion_name, max_mark, level_label, level_desc, level_marks
+          </div>
+          <div class="flex gap-sm">
+            <button class="btn" onclick="exportRubricCsv()">&#8595; Export to CSV</button>
+            <button class="btn btn-primary" onclick="document.getElementById('rubric-csv-input').click()">&#8593; Import from CSV</button>
+            <input type="file" id="rubric-csv-input" accept=".csv" style="display:none" onchange="importRubricCsv(this)">
           </div>
         </div>
       </div>
@@ -367,9 +348,9 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
         </div>
       </div>
 
-    </div><!-- end content-wrap -->
-  </div><!-- end main -->
-</div><!-- end app -->
+    </div>
+  </div>
+</div>
 
 <!-- MODERATION MODAL -->
 <div id="mod-modal" class="modal-overlay hidden">
@@ -500,8 +481,15 @@ function saveGrades() {
       var l=state.grades[sid],r=remote?remote[sid]:null;
       if (!r){merged[sid]=l;return;}
       merged[sid]=JSON.parse(JSON.stringify(l));
-      if (r.mark2!==undefined&&l.mark2===undefined){merged[sid].mark2=r.mark2;merged[sid].mark2Marker=r.mark2Marker;merged[sid].criteria2=r.criteria2;merged[sid].overallComment2=r.overallComment2;merged[sid].mark2Date=r.mark2Date;merged[sid].finalGrade=r.finalGrade;merged[sid].flagged=r.flagged;}
-      if (r.moderatorGrade!==undefined&&l.moderatorGrade===undefined){merged[sid].moderatorGrade=r.moderatorGrade;merged[sid].moderatorNotes=r.moderatorNotes;merged[sid].moderatorName=r.moderatorName;merged[sid].flagged=false;}
+      if (r.mark2!==undefined&&l.mark2===undefined){
+        merged[sid].mark2=r.mark2;merged[sid].mark2Marker=r.mark2Marker;
+        merged[sid].criteria2=r.criteria2;merged[sid].overallComment2=r.overallComment2;
+        merged[sid].mark2Date=r.mark2Date;merged[sid].finalGrade=r.finalGrade;merged[sid].flagged=r.flagged;
+      }
+      if (r.moderatorGrade!==undefined&&l.moderatorGrade===undefined){
+        merged[sid].moderatorGrade=r.moderatorGrade;merged[sid].moderatorNotes=r.moderatorNotes;
+        merged[sid].moderatorName=r.moderatorName;merged[sid].flagged=false;
+      }
     });
     state.grades=merged;
     localStorage.setItem('rm_grades',JSON.stringify(state.grades));
@@ -590,32 +578,66 @@ function pickerLoad(parentId,driveId){
     loadEl.style.display='none';listEl.style.display='block';
     var cur=pickerStack.length?pickerStack[pickerStack.length-1]:null;
     var html='';
-    if(cur){html+='<div class="folder-item" style="background:var(--success-light);border-bottom:2px solid var(--border)" onclick="pickerConfirm(\''+cur.id+'\',\''+cur.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+cur.driveId+'\')">'+'<span style="font-size:16px">✅</span>'+'<div style="flex:1"><div style="font-weight:600;color:var(--success)">Use &quot;'+cur.name+'&quot;</div><div style="font-size:12px;color:var(--muted)">Select this as the assessment folder</div></div></div>';}
-    if(!folders.length){html+='<div style="padding:.75rem;color:var(--muted);font-size:13px;font-style:italic">'+(cur?'No subfolders — use the button above.':'No folders found.')+'</div>';}
-    else{folders.forEach(function(f){html+='<div class="folder-item" onclick="pickerEnter(\''+f.id+'\',\''+f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+f.driveId+'\')">'+'<span style="font-size:18px">📁</span>'+'<div style="flex:1"><div style="font-weight:500">'+f.name+'</div><div style="font-size:12px;color:var(--muted)">'+f.count+' item'+(f.count!==1?'s':'')+'</div></div>'+'<span style="color:var(--muted);font-size:16px">›</span></div>';});}
+    if(cur){
+      html+='<div class="folder-item" style="background:var(--success-light);border-bottom:2px solid var(--border)" '
+        +'onclick="pickerConfirm(\''+cur.id+'\',\''+cur.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+cur.driveId+'\')">'
+        +'<span style="font-size:16px">&#10003;</span>'
+        +'<div style="flex:1"><div style="font-weight:600;color:var(--success)">Use &quot;'+cur.name+'&quot;</div>'
+        +'<div style="font-size:12px;color:var(--muted)">Select this as the assessment folder</div></div></div>';
+    }
+    if(!folders.length){
+      html+='<div style="padding:.75rem;color:var(--muted);font-size:13px;font-style:italic">'+(cur?'No subfolders — use the button above.':'No folders found.')+'</div>';
+    } else {
+      folders.forEach(function(f){
+        html+='<div class="folder-item" onclick="pickerEnter(\''+f.id+'\',\''+f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+f.driveId+'\')">'
+          +'<span style="font-size:18px">&#128193;</span>'
+          +'<div style="flex:1"><div style="font-weight:500">'+f.name+'</div>'
+          +'<div style="font-size:12px;color:var(--muted)">'+f.count+' item'+(f.count!==1?'s':'')+'</div></div>'
+          +'<span style="color:var(--muted);font-size:16px">&#8250;</span></div>';
+      });
+    }
     listEl.innerHTML=html;
   }
   function fail(e){loadEl.textContent='Error: '+e.message;loadEl.style.display='block';listEl.style.display='none';}
   if(DEMO_MODE||state.accessToken==='demo_token'){
     setTimeout(function(){
-      if(!parentId)render(picker.location==='my'?[{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]:[{id:'f005',name:'Shared Assessment Folder',count:4,driveId:'demo'},{id:'f006',name:'Dept Marking UNIT305',count:2,driveId:'demo'}]);
+      if(!parentId) render(picker.location==='my'
+        ?[{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]
+        :[{id:'f005',name:'Shared Assessment Folder',count:4,driveId:'demo'},{id:'f006',name:'Dept Marking UNIT305',count:2,driveId:'demo'}]);
       else render([{id:parentId+'_s1',name:'Submissions',count:8,driveId:driveId||''},{id:parentId+'_s2',name:'Marking Guides',count:2,driveId:driveId||''}]);
-    },400);return;
+    },400);
+    return;
   }
   if(!parentId){
-    if(picker.location==='my'){graphFetch('/me/drive/root/children?$select=id,name,folder&$top=100').then(function(d){render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:''};} ));}).catch(fail);}
-    else{graphFetch('/me/drive/sharedWithMe?$select=id,name,folder,remoteItem').then(function(d){render((d.value||[]).filter(function(i){return i.folder||(i.remoteItem&&i.remoteItem.folder);}).map(function(i){var ri=i.remoteItem;return {id:ri?ri.id:i.id,name:i.name,count:((ri&&ri.folder)||i.folder||{}).childCount||0,driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};} ));}).catch(fail);}
+    if(picker.location==='my'){
+      graphFetch('/me/drive/root/children?$select=id,name,folder&$top=100').then(function(d){
+        render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:''};} ));
+      }).catch(fail);
+    } else {
+      graphFetch('/me/drive/sharedWithMe?$select=id,name,folder,remoteItem').then(function(d){
+        render((d.value||[]).filter(function(i){return i.folder||(i.remoteItem&&i.remoteItem.folder);}).map(function(i){
+          var ri=i.remoteItem;
+          return {id:ri?ri.id:i.id,name:i.name,count:((ri&&ri.folder)||i.folder||{}).childCount||0,driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
+        }));
+      }).catch(fail);
+    }
   } else {
     var path=driveId?'/drives/'+driveId+'/items/'+parentId+'/children?$select=id,name,folder&$top=100':'/me/drive/items/'+parentId+'/children?$select=id,name,folder&$top=100';
-    graphFetch(path).then(function(d){render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:driveId||''};}));}).catch(fail);
+    graphFetch(path).then(function(d){
+      render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:driveId||''};}));
+    }).catch(fail);
   }
 }
 function pickerEnter(id,name,driveId){pickerStack.push({id:id,name:name,driveId:driveId});pickerLoad(id,driveId);}
 function pickerDrawBreadcrumb(){
   var el=document.getElementById('picker-breadcrumb');if(!el)return;
   var root=picker.location==='my'?'My OneDrive':'Shared with me';
-  var html='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">📁 '+root+'</span>';
-  pickerStack.forEach(function(f,i){html+=' <span style="color:var(--muted)">›</span> ';if(i<pickerStack.length-1)html+='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo('+i+')">'+f.name+'</span>';else html+='<span style="font-weight:500;color:var(--text)">'+f.name+'</span>';});
+  var html='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">&#128193; '+root+'</span>';
+  pickerStack.forEach(function(f,i){
+    html+=' <span style="color:var(--muted)">&#8250;</span> ';
+    if(i<pickerStack.length-1) html+='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo('+i+')">'+f.name+'</span>';
+    else html+='<span style="font-weight:500;color:var(--text)">'+f.name+'</span>';
+  });
   el.innerHTML=html;
 }
 function pickerGoTo(idx){pickerStack=pickerStack.slice(0,idx+1);if(idx<0)pickerLoad(null,null);else pickerLoad(pickerStack[idx].id,pickerStack[idx].driveId);}
@@ -678,24 +700,18 @@ function loadStudents(){
     renderStudentList();updateDashboard();
   }).catch(function(e){alert('Could not load students: '+e.message);});
 }
-
 function renderStudentList(filter){
   filter=(filter||'').toLowerCase();
   var items=state.students.filter(function(s){return s.name.toLowerCase().includes(filter)||s.id.includes(filter);});
   document.getElementById('student-list').innerHTML=items.map(function(s){
     var st=getStatus(state.grades[s.id]);
     var active=state.selectedStudent&&state.selectedStudent.id===s.id?'active':'';
-    return '<div class="student-item '+active+'" onclick="selectStudent(\''+s.id+'\')"><div class="s-name">'+s.name+'</div><div class="s-meta"><span>'+s.id+'</span><span class="badge badge-'+st.cls+'">'+st.label+'</span></div></div>';
+    return '<div class="student-item '+active+'" onclick="selectStudent(\''+s.id+'\')"><div class="s-name">'+s.name+'</div>'
+      +'<div class="s-meta"><span>'+s.id+'</span><span class="badge badge-'+st.cls+'">'+st.label+'</span></div></div>';
   }).join('');
 }
 function filterStudents(v){renderStudentList(v);}
-
-function requiresSecondMark(g){
-  if(!g||g.mark1===undefined)return false;
-  var max=getTotalMaxMarks();
-  return max>0&&(g.mark1/max)<0.5;
-}
-
+function requiresSecondMark(g){if(!g||g.mark1===undefined)return false;var max=getTotalMaxMarks();return max>0&&(g.mark1/max)<0.5;}
 function getStatus(g){
   if(!g)return{label:'Unmarked',cls:'none'};
   if(g.moderatorGrade!==undefined)return{label:'Complete',cls:'complete'};
@@ -714,23 +730,21 @@ function loadMarkingInterface(){
   var s=state.selectedStudent;if(!s)return;
   state.pdfDoc=null;state.pdfPage=1;
   document.getElementById('no-student-msg').classList.add('hidden');
-  var mi=document.getElementById('marking-interface');
-  mi.classList.remove('hidden');mi.style.display='flex';
+  var mi=document.getElementById('marking-interface');mi.classList.remove('hidden');mi.style.display='flex';
   document.getElementById('marking-student-name').textContent=s.name;
   document.getElementById('marking-student-id').textContent='Student ID: '+s.id;
   renderMarkingPanel();
   if(s.hasPdf){renderPdfPanel();loadAnnotationCanvas();renderStudentPdf(s);}
   else renderNoPdfPanel();
 }
-
 function renderMarkingPanel(){
   var s=state.selectedStudent,g=state.grades[s.id]||{},existing=g.criteria||{};
   var isSecond=g.mark1!==undefined&&g.mark1Marker!==state.user.name;
   var secondRequired=requiresSecondMark(g);
   var html='';
-  if(isSecond)html+='<div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--primary);font-weight:500">🔒 Blind second marking — first marker\'s scores are hidden.</div>';
-  else if(g.mark1!==undefined&&!secondRequired)html+='<div style="background:var(--success-light);border:1px solid var(--success);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--success)">✓ Passing grade — second mark optional. Final grade already generated.</div>';
-  else if(g.mark1!==undefined&&secondRequired)html+='<div style="background:var(--danger-light);border:1px solid var(--danger);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--danger)">⚠ Failing grade — second mark required before final grade is generated.</div>';
+  if(isSecond) html+='<div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--primary);font-weight:500">&#128274; Blind second marking &#8212; first marker\'s scores are hidden.</div>';
+  else if(g.mark1!==undefined&&!secondRequired) html+='<div style="background:var(--success-light);border:1px solid var(--success);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--success)">&#10003; Passing grade &#8212; second mark optional. Final grade already generated.</div>';
+  else if(g.mark1!==undefined&&secondRequired) html+='<div style="background:var(--danger-light);border:1px solid var(--danger);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--danger)">&#9888; Failing grade &#8212; second mark required before final grade is generated.</div>';
   html+='<div class="card" style="margin-bottom:0"><div class="flex items-center justify-between" style="margin-bottom:.75rem"><h3 style="margin-bottom:0">Rubric</h3><span id="total-score-display" class="score-display">0 / '+getTotalMaxMarks()+'</span></div><div id="criteria-marking">';
   state.rubric.criteria.forEach(function(c){
     var entry=!isSecond?existing[c.id]:null;
@@ -739,19 +753,20 @@ function renderMarkingPanel(){
     html+='</div>';
     c.levels.forEach(function(l){html+='<div class="level-desc-tip" id="desc-'+c.id+'-'+l.label.replace(/\W+/g,'_')+'">'+l.desc+'</div>';});
     html+='<div class="flex items-center gap-sm" style="margin-bottom:6px"><span class="text-muted" style="font-size:13px">Mark:</span>'
-      +'<input type="number" id="cs-input-'+c.id+'" min="0" max="'+c.maxMark+'" value="'+(entry?entry.marks:'')+'" placeholder="—" style="width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 7px;font-size:13px;font-weight:600;color:var(--primary)" oninput="updateTotalScoreDisplay()">'
+      +'<input type="number" id="cs-input-'+c.id+'" min="0" max="'+c.maxMark+'" value="'+(entry?entry.marks:'')+'" placeholder="&#8212;" '
+      +'style="width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 7px;font-size:13px;font-weight:600;color:var(--primary)" oninput="updateTotalScoreDisplay()">'
       +'<span class="text-muted" style="font-size:13px">/ '+c.maxMark+'</span></div>'
-      +'<textarea class="criterion-comment" id="cc-'+c.id+'" placeholder="Comment on this criterion…">'+(entry&&entry.comment?entry.comment:'')+'</textarea></div>';
+      +'<textarea class="criterion-comment" id="cc-'+c.id+'" placeholder="Comment on this criterion&#8230;">'+(entry&&entry.comment?entry.comment:'')+'</textarea></div>';
   });
-  html+='</div><hr class="divider"><div class="form-group"><label for="overall-comments">Overall comments</label><textarea id="overall-comments" placeholder="Overall feedback…" style="min-height:90px">'+(!isSecond&&g.overallComment?g.overallComment:'')+'</textarea></div></div>';
+  html+='</div><hr class="divider"><div class="form-group"><label for="overall-comments">Overall comments</label>'
+    +'<textarea id="overall-comments" placeholder="Overall feedback&#8230;" style="min-height:90px">'+(!isSecond&&g.overallComment?g.overallComment:'')+'</textarea></div></div>';
   document.getElementById('marking-panel').innerHTML=html;
   updateTotalScoreDisplay();
 }
-
 function toggleRubricPanel(){
   var layout=document.getElementById('marking-layout'),btn=document.getElementById('rubric-toggle-btn');
   var hidden=layout.classList.toggle('panel-hidden');
-  if(btn)btn.textContent=hidden?'›':'‹';
+  if(btn)btn.innerHTML=hidden?'&#8250;':'&#8249;';
   setTimeout(function(){if(state.pdfFitWidth&&state.pdfDoc)renderPdfPage();},220);
 }
 
@@ -760,9 +775,9 @@ function renderPdfPanel(){
   document.getElementById('pdf-panel').innerHTML=
     '<div id="pdf-toolbar">'
     +'<button onclick="changeTool(\'pan\')" id="tool-pan" class="active">Pan</button>'
-    +'<button onclick="changeTool(\'pen\')" id="tool-pen">✏ Pen</button>'
+    +'<button onclick="changeTool(\'pen\')" id="tool-pen">Pen</button>'
     +'<button onclick="changeTool(\'highlight\')" id="tool-highlight">Highlight</button>'
-    +'<button onclick="changeTool(\'text\')" id="tool-text">T Text</button>'
+    +'<button onclick="changeTool(\'text\')" id="tool-text">Text</button>'
     +'<button onclick="changeTool(\'eraser\')" id="tool-eraser">Eraser</button>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
     +'<div style="display:flex;gap:4px;align-items:center">'
@@ -774,17 +789,17 @@ function renderPdfPanel(){
     +'</div>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
     +'<select onchange="state.penSize=parseInt(this.value)"><option value="2">Fine</option><option value="4" selected>Medium</option><option value="8">Thick</option></select>'
-    +'<button onclick="undoAnnotation()">↩ Undo</button>'
+    +'<button onclick="undoAnnotation()">Undo</button>'
     +'<button onclick="clearAnnotations()">Clear</button>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
-    +'<button onclick="pdfZoom(-0.25)">−</button>'
+    +'<button onclick="pdfZoom(-0.25)">&#8722;</button>'
     +'<span id="zoom-label" style="color:#aaa;font-size:12px;min-width:36px;text-align:center">Fit</span>'
     +'<button onclick="pdfZoom(0.25)">+</button>'
     +'<button onclick="pdfFitToWidth()" id="btn-fit" style="background:var(--primary)">Fit</button>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
-    +'<span style="color:#999;font-size:12px" id="page-info">Loading…</span>'
-    +'<button onclick="changePdfPage(-1)">‹</button>'
-    +'<button onclick="changePdfPage(1)">›</button>'
+    +'<span style="color:#999;font-size:12px" id="page-info">Loading&#8230;</span>'
+    +'<button onclick="changePdfPage(-1)">&#8249;</button>'
+    +'<button onclick="changePdfPage(1)">&#8250;</button>'
     +'</div>'
     +'<div id="pdf-canvas-wrap" onwheel="handlePdfWheel(event)">'
     +'<div id="pdf-canvas-inner">'
@@ -792,15 +807,14 @@ function renderPdfPanel(){
     +'<canvas id="annotation-canvas" style="position:absolute;top:0;left:0;cursor:crosshair"></canvas>'
     +'</div></div>';
 }
-
 function renderNoPdfPanel(){
   document.getElementById('pdf-panel').innerHTML=
     '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;padding:2rem;text-align:center">'
-    +'<span style="font-size:48px;opacity:.35">📄</span>'
+    +'<span style="font-size:48px;opacity:.35">&#128196;</span>'
     +'<p style="color:#aaa;font-size:15px;font-weight:500">No PDF submission found</p>'
     +'<p style="color:#777;font-size:13px;max-width:320px">The student\'s folder doesn\'t contain a PDF file.</p>'
-    +'<textarea id="no-pdf-note" placeholder="Submission note…" style="width:100%;max-width:380px;background:#333;border:1px solid #555;border-radius:6px;color:#eee;padding:8px;font-size:13px;resize:vertical;min-height:70px;font-family:inherit"></textarea>'
-    +'<button onclick="document.getElementById(\'pdf-upload-input\').click()" style="background:#333;color:#ccc;border:1px solid #555;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">📎 Upload PDF manually</button>'
+    +'<textarea id="no-pdf-note" placeholder="Submission note&#8230;" style="width:100%;max-width:380px;background:#333;border:1px solid #555;border-radius:6px;color:#eee;padding:8px;font-size:13px;resize:vertical;min-height:70px;font-family:inherit"></textarea>'
+    +'<button onclick="document.getElementById(\'pdf-upload-input\').click()" style="background:#333;color:#ccc;border:1px solid #555;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">Upload PDF manually</button>'
     +'<input type="file" id="pdf-upload-input" accept=".pdf" style="display:none" onchange="handleManualPdfUpload(this)"></div>';
 }
 function handleManualPdfUpload(input){if(!input.files[0])return;state.selectedStudent.hasPdf=true;alert('PDF received.');loadMarkingInterface();}
@@ -818,24 +832,21 @@ function renderStudentPdf(student){
     .then(function(doc){state.pdfDoc=doc;state.pdfPage=1;renderPdfPage();})
     .catch(function(e){console.error('PDF load error:',e);if(pageInfo)pageInfo.textContent='PDF load failed';renderDemoPdf();});
 }
-
 function renderPdfPage(){
   if(!state.pdfDoc)return;
   state.pdfDoc.getPage(state.pdfPage).then(function(page){
-    var wrap=document.getElementById('pdf-canvas-wrap'),canvas=document.getElementById('pdf-canvas'),ann=document.getElementById('annotation-canvas'),inner=document.getElementById('pdf-canvas-inner');
+    var wrap=document.getElementById('pdf-canvas-wrap'),canvas=document.getElementById('pdf-canvas');
+    var ann=document.getElementById('annotation-canvas'),inner=document.getElementById('pdf-canvas-inner');
     if(!canvas||!wrap)return;
     var scale=state.pdfScale;
     if(state.pdfFitWidth){var vp0=page.getViewport({scale:1});scale=(wrap.clientWidth-24)/vp0.width;state.pdfScale=scale;}
     var vp=page.getViewport({scale:scale});
     canvas.width=vp.width;canvas.height=vp.height;
-    if(ann){ann.width=vp.width;ann.height=vp.height;}
+    if(ann){ann.width=vp.width;ann.height=vp.height;ann.style.width=canvas.offsetWidth+'px';ann.style.height=canvas.offsetHeight+'px';}
     if(inner){inner.style.width=vp.width+'px';inner.style.height=vp.height+'px';}
     page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise.then(function(){
       var pi=document.getElementById('page-info');if(pi)pi.textContent='Page '+state.pdfPage+' / '+state.pdfDoc.numPages;
       var zl=document.getElementById('zoom-label');if(zl)zl.textContent=state.pdfFitWidth?'Fit':Math.round(scale*100)+'%';
-      // Re-sync annotation canvas size after every render
-      var ann=document.getElementById('annotation-canvas');
-      if(ann){ann.width=canvas.width;ann.height=canvas.height;ann.style.width=canvas.offsetWidth+'px';ann.style.height=canvas.offsetHeight+'px';}
       redrawAnnotations();
     });
   });
@@ -859,15 +870,11 @@ function renderDemoPdf(){
 function loadAnnotationCanvas(){
   var pdf=document.getElementById('pdf-canvas'),ann=document.getElementById('annotation-canvas');
   if(!pdf||!ann)return;
-  // Match canvas pixel dimensions
   ann.width=pdf.width;ann.height=pdf.height;
-  // Match CSS display size to PDF canvas so coordinates align
   ann.style.width=pdf.offsetWidth+'px';ann.style.height=pdf.offsetHeight+'px';
   redrawAnnotations();
   var getPos=function(e){
-    var r=ann.getBoundingClientRect();
-    // Scale from CSS pixels to canvas pixels
-    var sx=ann.width/r.width,sy=ann.height/r.height;
+    var r=ann.getBoundingClientRect(),sx=ann.width/r.width,sy=ann.height/r.height;
     var src=e.touches?e.touches[0]:e;
     return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy};
   };
@@ -889,23 +896,40 @@ function redrawAnnotations(){
   var ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
   var sid=state.selectedStudent&&state.selectedStudent.id;
   (state.annotations[sid]||[]).forEach(function(a){
-    if(a.type==='stroke'||a.type==='highlight'){ctx.globalCompositeOperation=a.eraser?'destination-out':'source-over';ctx.globalAlpha=a.type==='highlight'?0.35:1;ctx.strokeStyle=a.color;ctx.lineWidth=a.type==='highlight'?16:(a.eraser?20:a.size);ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();a.points.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';}
-    else if(a.type==='text'){ctx.fillStyle=a.color;ctx.font='14px sans-serif';ctx.fillText(a.text,a.x,a.y);}
+    if(a.type==='stroke'||a.type==='highlight'){
+      ctx.globalCompositeOperation=a.eraser?'destination-out':'source-over';ctx.globalAlpha=a.type==='highlight'?0.35:1;
+      ctx.strokeStyle=a.color;ctx.lineWidth=a.type==='highlight'?16:(a.eraser?20:a.size);
+      ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+      a.points.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
+      ctx.stroke();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
+    } else if(a.type==='text'){ctx.fillStyle=a.color;ctx.font='14px sans-serif';ctx.fillText(a.text,a.x,a.y);}
   });
 }
 function undoAnnotation(){var sid=state.selectedStudent&&state.selectedStudent.id;if(sid&&state.annotations[sid]&&state.annotations[sid].length){state.annotations[sid].pop();redrawAnnotations();}}
 function clearAnnotations(){var sid=state.selectedStudent&&state.selectedStudent.id;if(sid){state.annotations[sid]=[];redrawAnnotations();saveAnnotations();}}
-function changeTool(tool){state.currentTool=tool;document.querySelectorAll('#pdf-toolbar button[id^="tool-"]').forEach(function(b){b.classList.remove('active');});var btn=document.getElementById('tool-'+tool);if(btn)btn.classList.add('active');var c=document.getElementById('annotation-canvas');if(c)c.style.cursor=tool==='pan'?'default':tool==='text'?'text':'crosshair';}
+function changeTool(tool){
+  state.currentTool=tool;
+  document.querySelectorAll('#pdf-toolbar button[id^="tool-"]').forEach(function(b){b.classList.remove('active');});
+  var btn=document.getElementById('tool-'+tool);if(btn)btn.classList.add('active');
+  var c=document.getElementById('annotation-canvas');if(c)c.style.cursor=tool==='pan'?'default':tool==='text'?'text':'crosshair';
+}
 function setAnnColor(color,el){state.annColor=color;document.querySelectorAll('.ann-color').forEach(function(e){e.classList.remove('active-color');});el.classList.add('active-color');}
 
 // ─── RUBRIC BUILDER ───────────────────────────────────────────────────────────
 function renderRubricBuilder(){
   document.getElementById('criteria-builder').innerHTML=state.rubric.criteria.map(function(c,ci){
-    var html='<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:.75rem"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
+    var html='<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:.75rem">'
+      +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;font-weight:500" type="text" value="'+c.name+'" placeholder="Criterion name" onchange="state.rubric.criteria['+ci+'].name=this.value;updateTotalMarks()">'
       +'<input style="width:80px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+c.maxMark+'" placeholder="Max" onchange="state.rubric.criteria['+ci+'].maxMark=parseInt(this.value)||0;updateTotalMarks()">'
-      +'<button class="btn-icon" onclick="removeCriterion(\''+c.id+'\')" style="color:var(--danger)">✕</button></div>';
-    c.levels.forEach(function(l,li){html+='<div style="display:flex;gap:.5rem;align-items:start;margin-bottom:.4rem"><input style="width:140px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.label+'" placeholder="Level" onchange="state.rubric.criteria['+ci+'].levels['+li+'].label=this.value"><input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.desc+'" placeholder="Descriptor" onchange="state.rubric.criteria['+ci+'].levels['+li+'].desc=this.value"><input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" placeholder="Marks" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseInt(this.value)||0"><button class="btn-icon" onclick="removeLevel(\''+c.id+'\','+li+')" style="color:var(--danger)">✕</button></div>';});
+      +'<button class="btn-icon" onclick="removeCriterion(\''+c.id+'\')" style="color:var(--danger)">&#10005;</button></div>';
+    c.levels.forEach(function(l,li){
+      html+='<div style="display:flex;gap:.5rem;align-items:start;margin-bottom:.4rem">'
+        +'<input style="width:140px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.label+'" placeholder="Level" onchange="state.rubric.criteria['+ci+'].levels['+li+'].label=this.value">'
+        +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.desc+'" placeholder="Descriptor" onchange="state.rubric.criteria['+ci+'].levels['+li+'].desc=this.value">'
+        +'<input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" placeholder="Marks" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseInt(this.value)||0">'
+        +'<button class="btn-icon" onclick="removeLevel(\''+c.id+'\','+li+')" style="color:var(--danger)">&#10005;</button></div>';
+    });
     html+='<button class="btn btn-sm" style="margin-top:.5rem" onclick="addLevel(\''+c.id+'\')">+ Add level</button></div>';
     return html;
   }).join('');
@@ -916,6 +940,59 @@ function removeCriterion(id){state.rubric.criteria=state.rubric.criteria.filter(
 function addLevel(cid){var c=state.rubric.criteria.find(function(c){return c.id===cid;});if(c){c.levels.push({label:'New Level',desc:'',marks:0});renderRubricBuilder();}}
 function removeLevel(cid,li){var c=state.rubric.criteria.find(function(c){return c.id===cid;});if(c){c.levels.splice(li,1);renderRubricBuilder();}}
 function updateTotalMarks(){var el=document.getElementById('total-marks-display');if(el)el.textContent=getTotalMaxMarks();}
+
+// ─── RUBRIC CSV IMPORT / EXPORT ───────────────────────────────────────────────
+function exportRubricCsv(){
+  var rows=['criterion_name,max_mark,level_label,level_desc,level_marks'];
+  state.rubric.criteria.forEach(function(c){
+    c.levels.forEach(function(l){
+      rows.push('"'+c.name.replace(/"/g,'""')+'",'+c.maxMark+',"'+l.label.replace(/"/g,'""')+'","'+l.desc.replace(/"/g,'""')+'",'+l.marks);
+    });
+  });
+  var blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='rubric.csv';a.click();URL.revokeObjectURL(url);
+}
+
+function importRubricCsv(input){
+  if(!input.files[0])return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try {
+      var lines=e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      if(!lines.length){alert('CSV is empty.');return;}
+      var firstLower=lines[0].toLowerCase();
+      if(firstLower.includes('criterion_name')||firstLower.includes('level_label'))lines.shift();
+      if(!lines.length){alert('No data rows found.');return;}
+      function parseCsvRow(row){
+        var fields=[],cur='',inQuote=false;
+        for(var i=0;i<row.length;i++){
+          var ch=row[i];
+          if(ch==='"'){if(inQuote&&row[i+1]==='"'){cur+='"';i++;}else inQuote=!inQuote;}
+          else if(ch===','&&!inQuote){fields.push(cur.trim());cur='';}
+          else cur+=ch;
+        }
+        fields.push(cur.trim());
+        return fields;
+      }
+      var criteriaMap={},criteriaOrder=[];
+      lines.forEach(function(line){
+        var f=parseCsvRow(line);if(f.length<5)return;
+        var cName=f[0],maxMark=parseInt(f[1])||0,lLabel=f[2],lDesc=f[3],lMarks=parseFloat(f[4])||0;
+        if(!cName)return;
+        if(!criteriaMap[cName]){criteriaMap[cName]={id:'c'+Date.now()+Math.random().toString(36).slice(2),name:cName,maxMark:maxMark,levels:[]};criteriaOrder.push(cName);}
+        criteriaMap[cName].levels.push({label:lLabel,desc:lDesc,marks:lMarks});
+      });
+      if(!criteriaOrder.length){alert('No valid rows found. Check the CSV format.');return;}
+      if(!confirm('Import '+criteriaOrder.length+' criteria? This will replace the current rubric.'))return;
+      state.rubric.criteria=criteriaOrder.map(function(n){return criteriaMap[n];});
+      renderRubricBuilder();
+      alert('Rubric imported — '+criteriaOrder.length+' criteria loaded.\n\nClick "Save rubric" to save to OneDrive.');
+    } catch(err){alert('Import failed: '+err.message);}
+    input.value='';
+  };
+  reader.readAsText(input.files[0]);
+}
 
 // ─── MARKING ──────────────────────────────────────────────────────────────────
 function selectLevel(criterionId,label,marks,maxMark,btn){
@@ -979,7 +1056,7 @@ function updateDashboard(){
     var g=state.grades[s.id],st=getStatus(g);
     var m1=g&&g.mark1!==undefined?g.mark1+'/'+max:'—',m2=g&&g.mark2!==undefined?g.mark2+'/'+max:'—';
     var fin=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:null):null;
-    return '<tr><td>'+s.name+'</td><td style="color:var(--muted)">'+s.id+'</td><td style="font-weight:600">'+m1+'</td><td style="font-weight:600">'+m2+'</td><td style="font-weight:600">'+(fin!==null?fin+'/'+max:(g&&g.flagged?'⚑':'—'))+'</td><td><span class="badge badge-'+st.cls+'">'+st.label+'</span></td><td><button class="btn btn-sm" onclick="selectStudent(\''+s.id+'\')">Open</button></td></tr>';
+    return '<tr><td>'+s.name+'</td><td style="color:var(--muted)">'+s.id+'</td><td style="font-weight:600">'+m1+'</td><td style="font-weight:600">'+m2+'</td><td style="font-weight:600">'+(fin!==null?fin+'/'+max:(g&&g.flagged?'&#9873;':'—'))+'</td><td><span class="badge badge-'+st.cls+'">'+st.label+'</span></td><td><button class="btn btn-sm" onclick="selectStudent(\''+s.id+'\')">Open</button></td></tr>';
   }).join('');
   renderModerationList();renderExportPreview();
 }
@@ -988,17 +1065,27 @@ function updateDashboard(){
 function renderModerationList(){
   var el=document.getElementById('moderation-list');if(!el)return;
   var flagged=state.students.filter(function(s){return state.grades[s.id]&&state.grades[s.id].flagged&&state.grades[s.id].moderatorGrade===undefined;});
-  if(!flagged.length){el.innerHTML='<p class="text-muted">No submissions flagged. 🎉</p>';return;}
+  if(!flagged.length){el.innerHTML='<p class="text-muted">No submissions flagged. &#127881;</p>';return;}
   var max=getTotalMaxMarks();
   el.innerHTML=flagged.map(function(s){
     var g=state.grades[s.id],diff=Math.abs(g.mark1-g.mark2),pct=max>0?(diff/max*100).toFixed(1):0;
-    return '<div class="card"><div class="flex items-center justify-between"><div><strong>'+s.name+'</strong> <span class="text-muted">'+s.id+'</span><p class="text-muted mt-sm">1st: <strong>'+g.mark1+'/'+max+'</strong> by '+g.mark1Marker+' | 2nd: <strong>'+g.mark2+'/'+max+'</strong> by '+g.mark2Marker+'</p><p style="color:var(--danger);font-size:13px;margin-top:4px">Difference: '+diff+' marks ('+pct+'%)</p></div><button class="btn btn-primary" onclick="openModModal(\''+s.id+'\')">Review</button></div></div>';
+    return '<div class="card"><div class="flex items-center justify-between"><div><strong>'+s.name+'</strong> <span class="text-muted">'+s.id+'</span>'
+      +'<p class="text-muted mt-sm">1st: <strong>'+g.mark1+'/'+max+'</strong> by '+g.mark1Marker+' | 2nd: <strong>'+g.mark2+'/'+max+'</strong> by '+g.mark2Marker+'</p>'
+      +'<p style="color:var(--danger);font-size:13px;margin-top:4px">Difference: '+diff+' marks ('+pct+'%)</p></div>'
+      +'<button class="btn btn-primary" onclick="openModModal(\''+s.id+'\')">Review</button></div></div>';
   }).join('');
 }
 var modSid=null;
 function openModModal(sid){
   modSid=sid;var s=state.students.find(function(s){return s.id===sid;}),g=state.grades[sid],max=getTotalMaxMarks(),avg=Math.round((g.mark1+g.mark2)/2);
-  document.getElementById('mod-modal-body').innerHTML='<p style="margin-bottom:1rem"><strong>'+s.name+'</strong> ('+s.id+')</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem"><div class="stat-card"><div class="stat-val">'+g.mark1+'/'+max+'</div><div class="stat-lbl">1st — '+g.mark1Marker+'</div></div><div class="stat-card"><div class="stat-val">'+g.mark2+'/'+max+'</div><div class="stat-lbl">2nd — '+g.mark2Marker+'</div></div></div><div class="form-group"><label for="mod-grade-input">Final grade (suggested: '+avg+'/'+max+')</label><input type="number" id="mod-grade-input" value="'+avg+'" min="0" max="'+max+'" style="width:100%"></div><div class="form-group"><label for="mod-notes-input">Moderator notes</label><textarea id="mod-notes-input" placeholder="Reason for final grade decision…"></textarea></div>';
+  document.getElementById('mod-modal-body').innerHTML='<p style="margin-bottom:1rem"><strong>'+s.name+'</strong> ('+s.id+')</p>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">'
+    +'<div class="stat-card"><div class="stat-val">'+g.mark1+'/'+max+'</div><div class="stat-lbl">1st — '+g.mark1Marker+'</div></div>'
+    +'<div class="stat-card"><div class="stat-val">'+g.mark2+'/'+max+'</div><div class="stat-lbl">2nd — '+g.mark2Marker+'</div></div></div>'
+    +'<div class="form-group"><label for="mod-grade-input">Final grade (suggested: '+avg+'/'+max+')</label>'
+    +'<input type="number" id="mod-grade-input" value="'+avg+'" min="0" max="'+max+'" style="width:100%"></div>'
+    +'<div class="form-group"><label for="mod-notes-input">Moderator notes</label>'
+    +'<textarea id="mod-notes-input" placeholder="Reason for final grade decision…"></textarea></div>';
   document.getElementById('mod-modal').classList.remove('hidden');
 }
 function closeModerationModal(){document.getElementById('mod-modal').classList.add('hidden');modSid=null;}
@@ -1010,200 +1097,12 @@ function saveModerationOverride(){
   saveGrades();closeModerationModal();updateDashboard();
 }
 
-// ─── PDF BURN-IN & FEEDBACK ───────────────────────────────────────────────────
-
-async function buildAnnotatedFeedbackPdf(student, g, max) {
-  // 1. Get original PDF bytes
-  var originalBytes = await getOriginalPdfBytes(student);
-
-  // 2. Load with PDF-lib
-  var pdfDoc = await PDFLib.PDFDocument.load(originalBytes);
-
-  // 3. Burn annotations onto pages
-  var anns = state.annotations[student.id] || [];
-  if (anns.length > 0) {
-    var pages = pdfDoc.getPages();
-    // Group annotations by page (default page 1 = index 0 for now)
-    // In future: store page number per annotation
-    var page = pages[0];
-    var pw = page.getWidth(), ph = page.getHeight();
-    // The canvas renders at state.pdfScale, so we need to convert back to PDF points
-    var canvasEl = document.getElementById('pdf-canvas');
-    var scaleX = canvasEl ? pw / canvasEl.width : 1;
-    var scaleY = canvasEl ? ph / canvasEl.height : 1;
-
-    anns.forEach(function(a) {
-      if (a.type === 'stroke' || a.type === 'highlight') {
-        if (!a.points || a.points.length < 2) return;
-        var alpha = a.type === 'highlight' ? 0.3 : 1.0;
-        var lw = a.type === 'highlight' ? 12 : (a.eraser ? 0 : a.size);
-        if (a.eraser) return; // skip eraser strokes in export
-        var col = hexToRgb(a.color);
-        for (var i = 1; i < a.points.length; i++) {
-          var x1 = a.points[i-1].x * scaleX;
-          var y1 = ph - (a.points[i-1].y * scaleY);
-          var x2 = a.points[i].x * scaleX;
-          var y2 = ph - (a.points[i].y * scaleY);
-          page.drawLine({
-            start:{x:x1,y:y1}, end:{x:x2,y:y2},
-            thickness: lw * scaleX,
-            color: PDFLib.rgb(col.r, col.g, col.b),
-            opacity: alpha
-          });
-        }
-      } else if (a.type === 'text') {
-        var col = hexToRgb(a.color);
-        var tx = a.x * scaleX;
-        var ty = ph - (a.y * scaleY);
-        try {
-          page.drawText(a.text, {
-            x: tx, y: ty,
-            size: 11,
-            color: PDFLib.rgb(col.r, col.g, col.b),
-          });
-        } catch(e) { console.warn('Text annotation draw failed:', e); }
-      }
-    });
-  }
-
-  // 4. Append rubric feedback page
-  var feedbackPage = pdfDoc.addPage([595, 842]); // A4
-  await drawFeedbackPage(feedbackPage, pdfDoc, student, g, max);
-
-  // 5. Return bytes as Uint8Array
-  var bytes = await pdfDoc.save();
-  return new Uint8Array(bytes);
-}
-
-function hexToRgb(hex) {
-  hex = hex.replace('#','');
-  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
-  return {
-    r: parseInt(hex.substring(0,2),16)/255,
-    g: parseInt(hex.substring(2,4),16)/255,
-    b: parseInt(hex.substring(4,6),16)/255
-  };
-}
-
-async function getOriginalPdfBytes(student) {
-  // In demo mode or no PDF, return a blank A4 PDF
-  if (DEMO_MODE || state.accessToken === 'demo_token' || !student.pdfItemId) {
-    var blank = await PDFLib.PDFDocument.create();
-    blank.addPage([595,842]);
-    return blank.save();
-  }
-  var driveId = state.config.sharedDriveId;
-  var path = driveId
-    ? '/drives/'+driveId+'/items/'+student.pdfItemId+'/content'
-    : '/me/drive/items/'+student.pdfItemId+'/content';
-  await acquireTokenSilent();
-  var res = await fetch(GRAPH+path, {headers:{Authorization:'Bearer '+state.accessToken}});
-  if (!res.ok) throw new Error('Could not fetch PDF: '+res.status);
-  return new Uint8Array(await res.arrayBuffer());
-}
-
-async function drawFeedbackPage(page, pdfDoc, student, g, max) {
-  // pdf-lib from CDN exposes fonts differently — use safe fallback
-  var helvetica, helveticaBold;
-  try {
-    helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
-    helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
-  } catch(e) {
-    // Fallback: some CDN builds use string literals
-    try {
-      helvetica = await pdfDoc.embedFont('Helvetica');
-      helveticaBold = await pdfDoc.embedFont('Helvetica-Bold');
-    } catch(e2) {
-      console.warn('Font embed failed, using default');
-      helvetica = undefined;
-      helveticaBold = undefined;
-    }
-  }
-
-  var pw = page.getWidth(), ph = page.getHeight();
-  var margin = 50, y = ph - margin, lineH = 18;
-  var black = PDFLib.rgb(0.1, 0.1, 0.1);
-  var indigo = PDFLib.rgb(0.31, 0.27, 0.9);
-  var grey = PDFLib.rgb(0.6, 0.6, 0.6);
-  var white = PDFLib.rgb(1, 1, 1);
-  var lightgrey = PDFLib.rgb(0.95, 0.95, 0.98);
-
-  function drawText(text, x, yPos, opts) {
-    opts = opts || {};
-    var fontToUse = opts.bold ? helveticaBold : helvetica;
-    var textOpts = {
-      x: x, y: yPos,
-      size: opts.size || 11,
-      color: opts.color || black,
-    };
-    if (fontToUse) textOpts.font = fontToUse;
-    if (opts.maxWidth) textOpts.maxWidth = opts.maxWidth;
-    try { page.drawText(String(text||''), textOpts); } catch(e) { console.warn('drawText failed:', e.message); }
-  }
-
-  function drawRect(x, yPos, w, h, fillColor, opacity) {
-    try { page.drawRectangle({x:x,y:yPos,width:w,height:h,color:fillColor,opacity:opacity||1}); } catch(e) {}
-  }
-
-  function drawHRule(yPos) {
-    try { page.drawLine({start:{x:margin,y:yPos},end:{x:pw-margin,y:yPos},thickness:0.5,color:PDFLib.rgb(0.8,0.8,0.8)}); } catch(e) {}
-  }
-
-  // Header
-  drawRect(0, ph-65, pw, 65, indigo);
-  drawText('Assessment Feedback', margin, ph-30, {size:16, bold:true, color:white});
-  drawText(state.config.unitName, margin, ph-50, {size:10, color:PDFLib.rgb(0.8,0.8,1)});
-
-  y = ph - 82;
-  drawText('Student: '+student.name+' ('+student.id+')', margin, y, {size:10, bold:true}); y -= lineH;
-  var grade = g ? (g.moderatorGrade!==undefined ? g.moderatorGrade : g.finalGrade!==undefined ? g.finalGrade : g.mark1!==undefined ? g.mark1 : '—') : '—';
-  var pct = (max>0 && grade!=='—') ? ' ('+Math.round(grade/max*100)+'%)' : '';
-  drawText('Final Grade: '+grade+' / '+max+pct, margin, y, {size:11, bold:true, color:indigo}); y -= lineH*1.5;
-  drawHRule(y+4); y -= 12;
-
-  drawText('Rubric Breakdown', margin, y, {size:13, bold:true}); y -= lineH*1.4;
-
-  var criteria = g && g.criteria ? g.criteria : {};
-  state.rubric.criteria.forEach(function(c) {
-    if (y < margin + 50) return;
-    var e = criteria[c.id];
-    // Row background
-    drawRect(margin, y-4, pw-margin*2, lineH+6, lightgrey);
-    drawText(c.name, margin+6, y, {size:10, bold:true});
-    drawText((e ? e.marks : '—')+' / '+c.maxMark, pw-margin-55, y, {size:10, bold:true, color:indigo});
-    y -= lineH + 8;
-
-    if (e) {
-      drawRect(margin, y-2, 130, lineH, indigo);
-      drawText(e.label, margin+4, y+1, {size:9, color:white});
-      y -= lineH + 4;
-      if (e.desc) { drawText(e.desc, margin+4, y, {size:9, color:grey, maxWidth:pw-margin*2-8}); y -= lineH+2; }
-      if (e.comment) { drawRect(margin, y-2, 3, lineH, indigo); drawText(e.comment, margin+10, y, {size:9, color:black, maxWidth:pw-margin*2-14}); y -= lineH+4; }
-    } else {
-      drawText('Not marked', margin+4, y, {size:9, color:grey}); y -= lineH;
-    }
-    y -= 4; drawHRule(y+2); y -= 8;
-  });
-
-  if (g && g.overallComment && y > margin+40) {
-    y -= 4; drawText('Overall Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
-    drawText(g.overallComment, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
-  }
-  if (g && g.overallComment2 && y > margin+40) {
-    drawText('Second Marker Feedback', margin, y, {size:12, bold:true}); y -= lineH*1.2;
-    drawText(g.overallComment2, margin, y, {size:10, maxWidth:pw-margin*2}); y -= lineH*2;
-  }
-  if (g && g.moderatorNotes && y > margin+30) {
-    drawText('Moderator Note: '+g.moderatorNotes, margin, y, {size:9, color:grey, maxWidth:pw-margin*2});
-  }
-
-  drawHRule(margin+20);
-  drawText('Generated by RubricMark — '+new Date().toLocaleDateString(), margin, margin+6, {size:8, color:grey});
-}
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function safeName(name){return name.replace(/[\/\\:*?"<>|]/g,'_').replace(/\.+/g,'_').trim();}
 function renderExportPreview(){
   var el=document.getElementById('export-preview'),cl=document.getElementById('export-checklist');if(!el||!cl)return;
   var max=getTotalMaxMarks();
-  cl.innerHTML=[['Rubric defined',state.rubric.criteria.length>0],['Students loaded',state.students.length>0],['At least one marked submission',Object.keys(state.grades).length>0]].map(function(x){return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="color:'+(x[1]?'var(--success)':'var(--danger)')+';">'+(x[1]?'✓':'✗')+'</span><span class="text-muted">'+x[0]+'</span></div>';}).join('');
+  cl.innerHTML=[['Rubric defined',state.rubric.criteria.length>0],['Students loaded',state.students.length>0],['At least one marked submission',Object.keys(state.grades).length>0]].map(function(x){return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="color:'+(x[1]?'var(--success)':'var(--danger)')+';">'+(x[1]?'&#10003;':'&#10007;')+'</span><span class="text-muted">'+x[0]+'</span></div>';}).join('');
   el.innerHTML='<table class="overview-table"><thead><tr><th>Student</th><th>ID</th><th>Final grade</th><th>Status</th></tr></thead><tbody>'+state.students.map(function(s){var g=state.grades[s.id];var fin=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:null):null;return '<tr><td>'+s.name+'</td><td>'+s.id+'</td><td>'+(fin!==null?fin+'/'+max:'—')+'</td><td>'+getStatus(g).label+'</td></tr>';}).join('')+'</tbody></table>';
 }
 function exportMoodle(){
@@ -1219,7 +1118,9 @@ function exportMoodle(){
   });
   zip.file('grading.csv',csv);
   var fb=zip.folder('feedback_files');
-  toExport.forEach(function(s){fb.folder(s.name+'_'+s.id+'_assignfeedback_file_').file('rubric_feedback.html',buildFeedbackHTML(s,state.grades[s.id],max));});
+  toExport.forEach(function(s){
+    fb.folder(safeName(s.name)+'_'+s.id+'_assignfeedback_file_').file('rubric_feedback.html',buildFeedbackHTML(s,state.grades[s.id],max));
+  });
   zip.generateAsync({type:'blob'}).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='moodle_export_'+Date.now()+'.zip';a.click();URL.revokeObjectURL(url);});
 }
 function buildFeedbackHTML(student,g,max){
@@ -1240,7 +1141,7 @@ function buildFeedbackHTML(student,g,max){
 function renderTeacherList(){
   var el=document.getElementById('teacher-list-ui');if(!el)return;
   if(!state.config.teachers||!state.config.teachers.length){el.innerHTML='<p class="text-muted">No additional teachers added.</p>';return;}
-  el.innerHTML=state.config.teachers.map(function(t,i){return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><div><strong>'+t.name+'</strong> <span class="text-muted">'+t.email+'</span></div><button class="btn-icon" onclick="removeTeacher('+i+')" style="color:var(--danger)">✕</button></div>';}).join('');
+  el.innerHTML=state.config.teachers.map(function(t,i){return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><div><strong>'+t.name+'</strong> <span class="text-muted">'+t.email+'</span></div><button class="btn-icon" onclick="removeTeacher('+i+')" style="color:var(--danger)">&#10005;</button></div>';}).join('');
 }
 function addTeacher(){
   var name=document.getElementById('new-teacher-name').value.trim(),email=document.getElementById('new-teacher-email').value.trim();
@@ -1263,9 +1164,6 @@ function showTab(tab){
 }
 
 if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-console.log('PDFLib available:', typeof PDFLib !== 'undefined');
-console.log('pdfjsLib available:', typeof pdfjsLib !== 'undefined');
-console.log('JSZip available:', typeof JSZip !== 'undefined');
 </script>
 </body>
 </html>
