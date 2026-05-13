@@ -719,7 +719,7 @@ function getStatus(g){
   if(g.mark1!==undefined){if(requiresSecondMark(g))return{label:'Needs 2nd mark',cls:'flagged'};return{label:'1st marked',cls:'marked'};}
   return{label:'Unmarked',cls:'none'};
 }
-function getTotalMaxMarks(){return state.rubric.criteria.reduce(function(a,c){return a+(c.maxMark||0);},0);}
+function getTotalMaxMarks(){return Math.round(state.rubric.criteria.reduce(function(a,c){return a+(parseFloat(c.maxMark)||0);},0)*100)/100;}
 function selectStudent(id){state.selectedStudent=state.students.find(function(s){return s.id===id;});renderStudentList(document.getElementById('search-box').value);showTab('mark');loadMarkingInterface();}
 function selectNextUnmarked(){var next=state.students.find(function(s){return !state.grades[s.id];});if(next)selectStudent(next.id);else alert('All submissions have been marked!');}
 function prevStudent(){var idx=state.students.findIndex(function(s){return s.id===(state.selectedStudent&&state.selectedStudent.id);});if(idx>0)selectStudent(state.students[idx-1].id);}
@@ -921,13 +921,13 @@ function renderRubricBuilder(){
     var html='<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:.75rem">'
       +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;font-weight:500" type="text" value="'+c.name+'" placeholder="Criterion name" onchange="state.rubric.criteria['+ci+'].name=this.value;updateTotalMarks()">'
-      +'<input style="width:80px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+c.maxMark+'" placeholder="Max" onchange="state.rubric.criteria['+ci+'].maxMark=parseInt(this.value)||0;updateTotalMarks()">'
+      +'<input style="width:80px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+c.maxMark+'" placeholder="Max" step="0.5" onchange="state.rubric.criteria['+ci+'].maxMark=parseFloat(this.value)||0;updateTotalMarks()">'
       +'<button class="btn-icon" onclick="removeCriterion(\''+c.id+'\')" style="color:var(--danger)">&#10005;</button></div>';
     c.levels.forEach(function(l,li){
       html+='<div style="display:flex;gap:.5rem;align-items:start;margin-bottom:.4rem">'
         +'<input style="width:140px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.label+'" placeholder="Level" onchange="state.rubric.criteria['+ci+'].levels['+li+'].label=this.value">'
         +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.desc+'" placeholder="Descriptor" onchange="state.rubric.criteria['+ci+'].levels['+li+'].desc=this.value">'
-        +'<input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" placeholder="Marks" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseInt(this.value)||0">'
+        +'<input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" placeholder="Marks" step="0.5" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseFloat(this.value)||0">'
         +'<button class="btn-icon" onclick="removeLevel(\''+c.id+'\','+li+')" style="color:var(--danger)">&#10005;</button></div>';
     });
     html+='<button class="btn btn-sm" style="margin-top:.5rem" onclick="addLevel(\''+c.id+'\')">+ Add level</button></div>';
