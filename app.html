@@ -8,7 +8,6 @@
 <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
-/* ── RESET & ROOT ────────────────────────────────── */
 html,body{height:100vh;width:100%;overflow:hidden;margin:0;padding:0}
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -151,20 +150,29 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
     <h2>Select your assessment folder</h2>
     <p style="color:var(--muted);font-size:14px;margin-bottom:1.5rem">Choose the OneDrive folder containing student submissions.</p>
     <div id="setup-step-1">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <button class="btn" id="loc-btn-my" onclick="pickerStart('my')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
-          <span style="font-size:20px">☁</span><span style="font-weight:500">My OneDrive</span>
+          <span style="font-size:20px">&#9729;</span><span style="font-weight:500">My OneDrive</span>
           <span style="font-size:12px;color:var(--muted)">Folders in your drive</span>
         </button>
         <button class="btn" id="loc-btn-shared" onclick="pickerStart('shared')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
-          <span style="font-size:20px">🤝</span><span style="font-weight:500">Shared with me</span>
+          <span style="font-size:20px">&#129309;</span><span style="font-weight:500">Shared with me</span>
           <span style="font-size:12px;color:var(--muted)">Folders shared by others</span>
         </button>
+      </div>
+      <div style="border-top:1px solid var(--border);padding-top:.75rem">
+        <p class="text-muted" style="margin-bottom:.5rem;font-size:13px">Or paste a OneDrive share link:</p>
+        <div style="display:flex;gap:.5rem">
+          <input type="text" id="share-link-input" placeholder="https://1drv.ms/… or sharing URL"
+            style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:13px">
+          <button class="btn btn-primary" onclick="pickerFromLink()">Connect</button>
+        </div>
+        <p id="share-link-error" style="display:none;font-size:12px;margin-top:.4rem"></p>
       </div>
     </div>
     <div id="setup-step-2" class="hidden" style="margin-top:1rem">
       <div id="picker-breadcrumb" style="font-size:13px;color:var(--muted);margin-bottom:.5rem;min-height:20px"></div>
-      <div id="picker-loading" style="padding:1rem;text-align:center;color:var(--muted);font-size:14px">Loading…</div>
+      <div id="picker-loading" style="padding:1rem;text-align:center;color:var(--muted);font-size:14px">Loading...</div>
       <div id="picker-list" style="border:1px solid var(--border);border-radius:var(--radius);max-height:260px;overflow-y:auto;display:none"></div>
       <div id="picker-selected" class="hidden" style="margin-top:.75rem;background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius);padding:.75rem;font-size:14px">
         <strong style="color:var(--primary)">Selected:</strong> <span id="picker-selected-name"></span>
@@ -184,7 +192,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 <!-- APP -->
 <div id="app" class="hidden">
   <div id="topbar">
-    <h1>🎓 RubricMark</h1>
+    <h1>&#127891; RubricMark</h1>
     <span id="unit-label" style="font-size:14px;color:var(--muted)"></span>
     <div class="spacer"></div>
     <div style="display:flex;gap:4px">
@@ -201,25 +209,24 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
       <button class="btn btn-sm" onclick="handleSignOut()">Sign out</button>
     </div>
   </div>
-
   <div id="main">
     <div id="sidebar">
       <div id="sidebar-header">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
           <h2 style="margin-bottom:0">Submissions</h2>
-          <button class="btn-icon" onclick="toggleSidebar()" title="Collapse" style="font-size:15px">«</button>
+          <button class="btn-icon" onclick="toggleSidebar()" title="Collapse" style="font-size:15px">&#171;</button>
         </div>
-        <input type="text" id="search-box" placeholder="Search student…" oninput="filterStudents(this.value)">
+        <input type="text" id="search-box" placeholder="Search student..." oninput="filterStudents(this.value)">
       </div>
       <div id="student-list"></div>
       <div id="sidebar-footer">
-        <button class="btn btn-sm" style="width:100%" onclick="loadStudents()">⟳ Refresh submissions</button>
-        <button class="btn btn-sm" style="width:100%" onclick="refreshGrades()">⟳ Refresh grades</button>
+        <button class="btn btn-sm" style="width:100%" onclick="loadStudents()">Refresh submissions</button>
+        <button class="btn btn-sm" style="width:100%" onclick="refreshGrades()">Refresh grades</button>
+        <button class="btn btn-sm" style="width:100%" onclick="document.getElementById('student-csv-input').click()">+ Import students (CSV)</button>
+        <input type="file" id="student-csv-input" accept=".csv" style="display:none" onchange="importStudentsCsv(this)">
       </div>
     </div>
-
-    <button id="sidebar-expand-btn" onclick="toggleSidebar()" class="hidden" title="Expand submissions">»</button>
-
+    <button id="sidebar-expand-btn" onclick="toggleSidebar()" class="hidden" title="Expand">&#187;</button>
     <div id="content-wrap">
 
       <!-- DASHBOARD -->
@@ -249,15 +256,14 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
             <div class="flex gap-sm">
               <button class="btn" onclick="prevStudent()">Prev</button>
               <button class="btn" onclick="nextStudent()">Next</button>
+              <button id="second-mark-btn" class="btn" onclick="enableSecondMark()" style="display:none">Mark as 2nd marker</button>
               <button class="btn btn-primary" onclick="submitMarks()">Submit marks</button>
             </div>
           </div>
           <div id="marking-layout">
             <div id="pdf-panel"></div>
             <div id="rubric-toggle-btn" onclick="toggleRubricPanel()" title="Toggle rubric panel">&#8249;</div>
-            <div id="marking-panel-wrap">
-              <div id="marking-panel"></div>
-            </div>
+            <div id="marking-panel-wrap"><div id="marking-panel"></div></div>
           </div>
         </div>
       </div>
@@ -280,12 +286,12 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
         <div class="card">
           <h3>Import / Export CSV</h3>
           <p class="text-muted" style="margin-bottom:1rem">Edit your rubric in Excel, then import it back. Each row is one performance level.</p>
-          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;font-size:12px;color:var(--muted);margin-bottom:1rem;font-family:monospace;word-break:break-all">
+          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;font-size:12px;color:var(--muted);margin-bottom:1rem;font-family:monospace">
             criterion_name, max_mark, level_label, level_desc, level_marks
           </div>
           <div class="flex gap-sm">
-            <button class="btn" onclick="exportRubricCsv()">&#8595; Export to CSV</button>
-            <button class="btn btn-primary" onclick="document.getElementById('rubric-csv-input').click()">&#8593; Import from CSV</button>
+            <button class="btn" onclick="exportRubricCsv()">Export to CSV</button>
+            <button class="btn btn-primary" onclick="document.getElementById('rubric-csv-input').click()">Import from CSV</button>
             <input type="file" id="rubric-csv-input" accept=".csv" style="display:none" onchange="importRubricCsv(this)">
           </div>
         </div>
@@ -294,7 +300,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
       <!-- MODERATION -->
       <div id="tab-moderation" class="hidden">
         <div class="card">
-          <h3>Flagged — moderation required</h3>
+          <h3>Flagged - moderation required</h3>
           <p class="text-muted" style="margin-bottom:1rem">Submissions where first and second marks differ by more than <strong id="threshold-display">10</strong>%.</p>
           <div id="moderation-list"></div>
         </div>
@@ -332,9 +338,10 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
             <input type="number" id="setting-threshold" value="10" min="1" max="50">
             <p class="text-muted mt-sm">Submissions differing by more than this % will be flagged.</p>
           </div>
-          <div style="display:flex;gap:.5rem">
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap">
             <button class="btn btn-primary" onclick="saveSettings()">Save settings</button>
             <button class="btn" onclick="changeFolder()">Change folder</button>
+            <button class="btn" onclick="clearAllGrades()" style="color:var(--danger);border-color:var(--danger)">Clear grades</button>
           </div>
         </div>
         <div class="card">
@@ -365,18 +372,21 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 </div>
 
 <script>
-var CLIENT_ID    = 'ccca83e7-7a6d-41f0-a304-7bfbee3c1179';
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+var CLIENT_ID    = 'YOUR_CLIENT_ID_HERE';
 var REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
 var SCOPES       = ['User.Read','Files.ReadWrite'];
 var DEMO_MODE    = (CLIENT_ID === 'YOUR_CLIENT_ID_HERE');
 var GRAPH        = 'https://graph.microsoft.com/v1.0';
 
+// ─── STATE ────────────────────────────────────────────────────────────────────
 var state = {
   user:null, accessToken:null,
   config:{unitName:'Assessment',threshold:10,sharedFolderPath:'',sharedFolderId:null,sharedDriveId:null,teachers:[]},
   rubric:{criteria:[]}, students:[], grades:{}, annotations:{},
   selectedStudent:null, currentTool:'pan', annColor:'#ef4444', penSize:4, drawing:false,
-  pdfDoc:null, pdfPage:1, pdfScale:1.5, pdfFitWidth:true
+  pdfDoc:null, pdfPage:1, pdfScale:1.5, pdfFitWidth:true,
+  _gradesKey:'rm_grades', _annotationsKey:'rm_annotations', _rubricKey:'rm_rubric'
 };
 var picker = {location:null,folderId:null,folderName:null,driveId:null};
 var pickerStack = [];
@@ -418,256 +428,382 @@ window.addEventListener('DOMContentLoaded', function() {
   });
   msalInstance.handleRedirectPromise().then(function(resp) {
     if (resp) {
-      state.accessToken=resp.accessToken; state.user={name:resp.account.name,email:resp.account.username};
-      msalInstance.setActiveAccount(resp.account); showSetupOrApp();
+      state.accessToken = resp.accessToken;
+      state.user = {name:resp.account.name, email:resp.account.username};
+      msalInstance.setActiveAccount(resp.account);
+      showSetupOrApp();
     } else {
-      var accounts=msalInstance.getAllAccounts();
-      if (accounts.length>0){msalInstance.setActiveAccount(accounts[0]);acquireTokenSilent().then(showSetupOrApp);}
+      var accounts = msalInstance.getAllAccounts();
+      if (accounts.length > 0) {
+        msalInstance.setActiveAccount(accounts[0]);
+        acquireTokenSilent().then(showSetupOrApp);
+      }
     }
-  }).catch(function(e){showAuthError(e.message);});
+  }).catch(function(e) { showAuthError(e.message); });
 });
 
 function acquireTokenSilent() {
   if (DEMO_MODE) return Promise.resolve();
-  return msalInstance.acquireTokenSilent({scopes:SCOPES}).then(function(r){
-    state.accessToken=r.accessToken; state.user={name:r.account.name,email:r.account.username};
-  }).catch(function(e){
+  return msalInstance.acquireTokenSilent({scopes:SCOPES}).then(function(r) {
+    state.accessToken = r.accessToken;
+    state.user = {name:r.account.name, email:r.account.username};
+  }).catch(function(e) {
     if (e instanceof msal.InteractionRequiredAuthError) msalInstance.acquireTokenRedirect({scopes:SCOPES});
     else showAuthError(e.message);
   });
 }
 
 function handleSignIn() {
-  if (DEMO_MODE){state.user={name:'Dr. Sarah Mitchell',email:'sarah@uni.edu.au'};state.accessToken='demo_token';showSetupOrApp();return;}
+  if (DEMO_MODE) {
+    state.user = {name:'Dr. Sarah Mitchell', email:'sarah@uni.edu.au'};
+    state.accessToken = 'demo_token';
+    showSetupOrApp();
+    return;
+  }
   msalInstance.loginRedirect({scopes:SCOPES});
 }
+
 function handleSignOut() {
-  if (DEMO_MODE){document.getElementById('app').classList.add('hidden');document.getElementById('auth-screen').classList.remove('hidden');return;}
+  if (DEMO_MODE) {
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('auth-screen').classList.remove('hidden');
+    return;
+  }
   msalInstance.logoutRedirect();
 }
-function showAuthError(msg){var el=document.getElementById('auth-error');el.textContent='Sign-in error: '+msg;el.style.display='block';}
+
+function showAuthError(msg) {
+  var el = document.getElementById('auth-error');
+  el.textContent = 'Sign-in error: ' + msg;
+  el.style.display = 'block';
+}
 
 // ─── GRAPH ────────────────────────────────────────────────────────────────────
 function graphFetch(path) {
-  var p=DEMO_MODE?Promise.resolve():acquireTokenSilent();
-  return p.then(function(){return fetch(GRAPH+path,{headers:{Authorization:'Bearer '+state.accessToken}});})
-    .then(function(res){if(!res.ok)return res.text().then(function(t){throw new Error('Graph '+res.status+': '+t);});return res.json();});
+  var p = DEMO_MODE ? Promise.resolve() : acquireTokenSilent();
+  return p.then(function() {
+    return fetch(GRAPH + path, {headers:{Authorization:'Bearer '+state.accessToken}});
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t) { throw new Error('Graph '+res.status+': '+t); });
+    return res.json();
+  });
 }
-function fileUrl(filename){
-  var sid=state.config.sharedFolderId,did=state.config.sharedDriveId;
-  return did?GRAPH+'/drives/'+did+'/items/'+sid+':/'+filename+':/content':GRAPH+'/me/drive/items/'+sid+':/'+filename+':/content';
+
+function fileUrl(filename) {
+  var sid = state.config.sharedFolderId, did = state.config.sharedDriveId;
+  return did
+    ? GRAPH+'/drives/'+did+'/items/'+sid+':/'+filename+':/content'
+    : GRAPH+'/me/drive/items/'+sid+':/'+filename+':/content';
 }
+
 function readJsonFile(filename) {
-  if (DEMO_MODE||!state.config.sharedFolderId||state.accessToken==='demo_token') return Promise.resolve(null);
-  return acquireTokenSilent().then(function(){return fetch(fileUrl(filename),{headers:{Authorization:'Bearer '+state.accessToken}});})
-    .then(function(res){if(!res.ok)return null;return res.json();}).catch(function(e){console.warn('readJsonFile:',e);return null;});
+  if (DEMO_MODE || !state.config.sharedFolderId || state.accessToken === 'demo_token') return Promise.resolve(null);
+  return acquireTokenSilent().then(function() {
+    return fetch(fileUrl(filename), {headers:{Authorization:'Bearer '+state.accessToken}});
+  }).then(function(res) {
+    if (!res.ok) return null;
+    return res.json();
+  }).catch(function(e) { console.warn('readJsonFile:', e); return null; });
 }
-function writeJsonFile(filename,data) {
-  if (DEMO_MODE||!state.config.sharedFolderId||state.accessToken==='demo_token') return Promise.resolve();
-  return acquireTokenSilent().then(function(){
-    return fetch(fileUrl(filename),{method:'PUT',headers:{Authorization:'Bearer '+state.accessToken,'Content-Type':'application/json'},body:JSON.stringify(data)});
-  }).then(function(res){if(!res.ok)return res.text().then(function(t){console.warn('writeJsonFile failed:',t);});})
-  .catch(function(e){console.warn('writeJsonFile:',e);});
+
+function writeJsonFile(filename, data) {
+  if (DEMO_MODE || !state.config.sharedFolderId || state.accessToken === 'demo_token') return Promise.resolve();
+  return acquireTokenSilent().then(function() {
+    return fetch(fileUrl(filename), {
+      method:'PUT',
+      headers:{Authorization:'Bearer '+state.accessToken, 'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t) { console.warn('writeJsonFile failed:', t); });
+  }).catch(function(e) { console.warn('writeJsonFile:', e); });
 }
 
 // ─── SAVE ─────────────────────────────────────────────────────────────────────
 function saveGrades() {
-  localStorage.setItem('rm_grades',JSON.stringify(state.grades));
-  if (DEMO_MODE||!state.config.sharedFolderId||state.accessToken==='demo_token') return;
+  localStorage.setItem(state._gradesKey, JSON.stringify(state.grades));
+  if (DEMO_MODE || !state.config.sharedFolderId || state.accessToken === 'demo_token') return;
   readJsonFile('grades.json').then(function(remote) {
-    var merged={};
-    if (remote) Object.keys(remote).forEach(function(sid){merged[sid]=remote[sid];});
+    var merged = {};
+    if (remote) Object.keys(remote).forEach(function(sid) { merged[sid] = remote[sid]; });
     Object.keys(state.grades).forEach(function(sid) {
-      var l=state.grades[sid],r=remote?remote[sid]:null;
-      if (!r){merged[sid]=l;return;}
-      merged[sid]=JSON.parse(JSON.stringify(l));
-      if (r.mark2!==undefined&&l.mark2===undefined){
-        merged[sid].mark2=r.mark2;merged[sid].mark2Marker=r.mark2Marker;
-        merged[sid].criteria2=r.criteria2;merged[sid].overallComment2=r.overallComment2;
-        merged[sid].mark2Date=r.mark2Date;merged[sid].finalGrade=r.finalGrade;merged[sid].flagged=r.flagged;
+      var l = state.grades[sid], r = remote ? remote[sid] : null;
+      if (!r) { merged[sid] = l; return; }
+      merged[sid] = JSON.parse(JSON.stringify(l));
+      if (r.mark2 !== undefined && l.mark2 === undefined) {
+        merged[sid].mark2 = r.mark2; merged[sid].mark2Marker = r.mark2Marker;
+        merged[sid].criteria2 = r.criteria2; merged[sid].overallComment2 = r.overallComment2;
+        merged[sid].mark2Date = r.mark2Date; merged[sid].finalGrade = r.finalGrade;
+        merged[sid].flagged = r.flagged;
       }
-      if (r.moderatorGrade!==undefined&&l.moderatorGrade===undefined){
-        merged[sid].moderatorGrade=r.moderatorGrade;merged[sid].moderatorNotes=r.moderatorNotes;
-        merged[sid].moderatorName=r.moderatorName;merged[sid].flagged=false;
+      if (r.moderatorGrade !== undefined && l.moderatorGrade === undefined) {
+        merged[sid].moderatorGrade = r.moderatorGrade;
+        merged[sid].moderatorNotes = r.moderatorNotes;
+        merged[sid].moderatorName = r.moderatorName;
+        merged[sid].flagged = false;
       }
     });
-    state.grades=merged;
-    localStorage.setItem('rm_grades',JSON.stringify(state.grades));
-    writeJsonFile('grades.json',merged);
+    state.grades = merged;
+    localStorage.setItem(state._gradesKey, JSON.stringify(state.grades));
+    writeJsonFile('grades.json', merged);
   });
 }
-function saveAnnotations(){localStorage.setItem('rm_annotations',JSON.stringify(state.annotations));writeJsonFile('annotations.json',state.annotations);}
-function saveRubric(){localStorage.setItem('rm_rubric',JSON.stringify(state.rubric));writeJsonFile('rubric.json',state.rubric).then(function(){alert('Rubric saved.');});updateTotalMarks();}
-function saveSettings(){
-  state.config.unitName=document.getElementById('setting-unit-name').value;
-  state.config.threshold=parseFloat(document.getElementById('setting-threshold').value)||10;
-  localStorage.setItem('rm_config',JSON.stringify(state.config));
-  document.getElementById('unit-label').textContent=state.config.unitName;
-  document.getElementById('threshold-display').textContent=state.config.threshold;
+
+function saveAnnotations() {
+  localStorage.setItem(state._annotationsKey, JSON.stringify(state.annotations));
+  writeJsonFile('annotations.json', state.annotations);
+}
+
+function saveRubric() {
+  localStorage.setItem(state._rubricKey, JSON.stringify(state.rubric));
+  writeJsonFile('rubric.json', state.rubric).then(function() { alert('Rubric saved.'); });
+  updateTotalMarks();
+}
+
+function saveSettings() {
+  state.config.unitName = document.getElementById('setting-unit-name').value;
+  state.config.threshold = parseFloat(document.getElementById('setting-threshold').value) || 10;
+  localStorage.setItem('rm_config', JSON.stringify(state.config));
+  document.getElementById('unit-label').textContent = state.config.unitName;
+  document.getElementById('threshold-display').textContent = state.config.threshold;
   alert('Settings saved.');
 }
-function refreshGrades(){
-  Promise.all([readJsonFile('grades.json'),readJsonFile('annotations.json')]).then(function(res){
-    if(res[0]){state.grades=res[0];localStorage.setItem('rm_grades',JSON.stringify(state.grades));}
-    if(res[1]){state.annotations=res[1];localStorage.setItem('rm_annotations',JSON.stringify(state.annotations));}
+
+function refreshGrades() {
+  Promise.all([readJsonFile('grades.json'), readJsonFile('annotations.json')]).then(function(res) {
+    if (res[0]) { state.grades = res[0]; localStorage.setItem(state._gradesKey, JSON.stringify(state.grades)); }
+    if (res[1]) { state.annotations = res[1]; localStorage.setItem(state._annotationsKey, JSON.stringify(state.annotations)); }
     renderStudentList(document.getElementById('search-box').value);
     updateDashboard();
-    if(state.selectedStudent)renderMarkingPanel();
-  }).catch(function(e){alert('Could not refresh grades: '+e.message);});
+    if (state.selectedStudent) renderMarkingPanel();
+  }).catch(function(e) { alert('Could not refresh grades: ' + e.message); });
+}
+
+function clearAllGrades() {
+  if (!confirm('Clear ALL grades and annotations for this folder? This cannot be undone.')) return;
+  state.grades = {}; state.annotations = {};
+  localStorage.removeItem(state._gradesKey);
+  localStorage.removeItem(state._annotationsKey);
+  writeJsonFile('grades.json', {});
+  writeJsonFile('annotations.json', {});
+  renderStudentList(); updateDashboard();
+  alert('Grades cleared.');
 }
 
 // ─── APP INIT ─────────────────────────────────────────────────────────────────
-function showSetupOrApp(){
+function showSetupOrApp() {
   document.getElementById('auth-screen').classList.add('hidden');
-  var saved=localStorage.getItem('rm_config');
-  if(saved){state.config=Object.assign({},state.config,JSON.parse(saved));loadApp();}
-  else document.getElementById('setup-screen').classList.remove('hidden');
+  var saved = localStorage.getItem('rm_config');
+  if (saved) {
+    state.config = Object.assign({}, state.config, JSON.parse(saved));
+    loadApp();
+  } else {
+    document.getElementById('setup-screen').classList.remove('hidden');
+  }
 }
-function loadApp(){
+
+function loadApp() {
   document.getElementById('setup-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('unit-label').textContent=state.config.unitName;
-  var initials=state.user.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
-  document.getElementById('user-initials').textContent=initials;
-  document.getElementById('user-name-display').textContent=state.user.name;
-  document.getElementById('setting-unit-name').value=state.config.unitName;
-  document.getElementById('setting-threshold').value=state.config.threshold;
-  document.getElementById('threshold-display').textContent=state.config.threshold;
-  Promise.all([readJsonFile('rubric.json'),readJsonFile('grades.json'),readJsonFile('annotations.json')]).then(function(res){
-    state.rubric=res[0]||JSON.parse(localStorage.getItem('rm_rubric')||'null')||DEFAULT_RUBRIC;
-    state.grades=res[1]||JSON.parse(localStorage.getItem('rm_grades')||'{}');
-    state.annotations=res[2]||JSON.parse(localStorage.getItem('rm_annotations')||'{}');
-    loadStudents();renderRubricBuilder();renderTeacherList();updateDashboard();
+  document.getElementById('unit-label').textContent = state.config.unitName;
+  var initials = state.user.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase();
+  document.getElementById('user-initials').textContent = initials;
+  document.getElementById('user-name-display').textContent = state.user.name;
+  document.getElementById('setting-unit-name').value = state.config.unitName;
+  document.getElementById('setting-threshold').value = state.config.threshold;
+  document.getElementById('threshold-display').textContent = state.config.threshold;
+  var folderKey = state.config.sharedFolderId || 'demo';
+  state._gradesKey      = 'rm_grades_' + folderKey;
+  state._annotationsKey = 'rm_annotations_' + folderKey;
+  state._rubricKey      = 'rm_rubric_' + folderKey;
+  Promise.all([readJsonFile('rubric.json'), readJsonFile('grades.json'), readJsonFile('annotations.json')]).then(function(res) {
+    state.rubric      = res[0] || JSON.parse(localStorage.getItem(state._rubricKey) || 'null') || DEFAULT_RUBRIC;
+    state.grades      = res[1] || JSON.parse(localStorage.getItem(state._gradesKey) || '{}');
+    state.annotations = res[2] || JSON.parse(localStorage.getItem(state._annotationsKey) || '{}');
+    loadStudents(); renderRubricBuilder(); renderTeacherList(); updateDashboard();
   });
 }
-function changeFolder(){
-  if(!confirm('Change folder? Rubric and grades data will be preserved.'))return;
+
+function changeFolder() {
+  if (!confirm('Change folder? Rubric and grades data will be preserved.')) return;
   localStorage.removeItem('rm_config');
-  state.config={unitName:'Assessment',threshold:10,sharedFolderPath:'',sharedFolderId:null,sharedDriveId:null,teachers:[]};
+  state.config = {unitName:'Assessment',threshold:10,sharedFolderPath:'',sharedFolderId:null,sharedDriveId:null,teachers:[]};
   document.getElementById('app').classList.add('hidden');
   document.getElementById('setup-step-2').classList.add('hidden');
   document.getElementById('picker-selected').classList.add('hidden');
-  document.getElementById('continue-btn').disabled=true;
+  document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
   document.getElementById('loc-btn-shared').classList.remove('btn-primary');
   document.getElementById('setup-screen').classList.remove('hidden');
 }
 
 // ─── SIDEBAR ──────────────────────────────────────────────────────────────────
-function toggleSidebar(){
-  var sidebar=document.getElementById('sidebar');
-  var expandBtn=document.getElementById('sidebar-expand-btn');
-  var collapsed=sidebar.classList.toggle('collapsed');
-  expandBtn.classList.toggle('hidden',!collapsed);
-  setTimeout(function(){if(state.pdfFitWidth&&state.pdfDoc)renderPdfPage();},220);
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var expandBtn = document.getElementById('sidebar-expand-btn');
+  var collapsed = sidebar.classList.toggle('collapsed');
+  expandBtn.classList.toggle('hidden', !collapsed);
+  setTimeout(function() { if (state.pdfFitWidth && state.pdfDoc) renderPdfPage(); }, 220);
 }
 
 // ─── FOLDER PICKER ────────────────────────────────────────────────────────────
-function pickerStart(loc){
-  picker.location=loc;pickerStack=[];
-  document.getElementById('loc-btn-my').classList.toggle('btn-primary',loc==='my');
-  document.getElementById('loc-btn-shared').classList.toggle('btn-primary',loc==='shared');
-  document.getElementById('setup-step-2').classList.remove('hidden');
-  pickerLoad(null,null);
+function pickerFromLink() {
+  var link = document.getElementById('share-link-input').value.trim();
+  var errEl = document.getElementById('share-link-error');
+  errEl.style.display = 'none';
+  if (!link) { errEl.textContent = 'Please paste a share link.'; errEl.style.color='var(--danger)'; errEl.style.display='block'; return; }
+  var encoded = btoa(link).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  errEl.textContent = 'Resolving link...'; errEl.style.color='var(--muted)'; errEl.style.display='block';
+  acquireTokenSilent().then(function() {
+    return fetch(GRAPH+'/shares/u!'+encoded+'/driveItem?$select=id,name,folder,parentReference', {
+      headers:{Authorization:'Bearer '+state.accessToken}
+    });
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t) { throw new Error('Could not resolve link ('+res.status+'). Make sure the link is a valid OneDrive share link.'); });
+    return res.json();
+  }).then(function(item) {
+    if (!item.folder) throw new Error('This link points to a file, not a folder.');
+    var driveId = item.parentReference && item.parentReference.driveId;
+    errEl.style.display = 'none';
+    document.getElementById('setup-step-2').classList.remove('hidden');
+    document.getElementById('picker-breadcrumb').innerHTML = '<span style="color:var(--muted)">Connected via share link</span>';
+    document.getElementById('picker-loading').style.display = 'none';
+    document.getElementById('picker-list').style.display = 'none';
+    pickerConfirm(item.id, item.name, driveId || '');
+  }).catch(function(e) {
+    errEl.textContent = e.message; errEl.style.color='var(--danger)'; errEl.style.display='block';
+  });
 }
-function pickerLoad(parentId,driveId){
-  var loadEl=document.getElementById('picker-loading'),listEl=document.getElementById('picker-list');
-  loadEl.style.display='block';loadEl.textContent='Loading…';listEl.style.display='none';
+
+function pickerStart(loc) {
+  picker.location = loc; pickerStack = [];
+  document.getElementById('loc-btn-my').classList.toggle('btn-primary', loc === 'my');
+  document.getElementById('loc-btn-shared').classList.toggle('btn-primary', loc === 'shared');
+  document.getElementById('setup-step-2').classList.remove('hidden');
+  pickerLoad(null, null);
+}
+
+function pickerLoad(parentId, driveId) {
+  var loadEl = document.getElementById('picker-loading');
+  var listEl = document.getElementById('picker-list');
+  loadEl.style.display = 'block'; loadEl.textContent = 'Loading...';
+  listEl.style.display = 'none';
   pickerDrawBreadcrumb();
-  function render(folders){
-    loadEl.style.display='none';listEl.style.display='block';
-    var cur=pickerStack.length?pickerStack[pickerStack.length-1]:null;
-    var html='';
-    if(cur){
-      html+='<div class="folder-item" style="background:var(--success-light);border-bottom:2px solid var(--border)" '
+
+  function render(folders) {
+    loadEl.style.display = 'none'; listEl.style.display = 'block';
+    var cur = pickerStack.length ? pickerStack[pickerStack.length-1] : null;
+    var html = '';
+    if (cur) {
+      html += '<div class="folder-item" style="background:var(--success-light);border-bottom:2px solid var(--border)" '
         +'onclick="pickerConfirm(\''+cur.id+'\',\''+cur.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+cur.driveId+'\')">'
         +'<span style="font-size:16px">&#10003;</span>'
         +'<div style="flex:1"><div style="font-weight:600;color:var(--success)">Use &quot;'+cur.name+'&quot;</div>'
         +'<div style="font-size:12px;color:var(--muted)">Select this as the assessment folder</div></div></div>';
     }
-    if(!folders.length){
-      html+='<div style="padding:.75rem;color:var(--muted);font-size:13px;font-style:italic">'+(cur?'No subfolders — use the button above.':'No folders found.')+'</div>';
+    if (!folders.length) {
+      html += '<div style="padding:.75rem;color:var(--muted);font-size:13px;font-style:italic">'+(cur?'No subfolders — use the button above.':'No folders found.')+'</div>';
     } else {
-      folders.forEach(function(f){
-        html+='<div class="folder-item" onclick="pickerEnter(\''+f.id+'\',\''+f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+f.driveId+'\')">'
+      folders.forEach(function(f) {
+        html += '<div class="folder-item" onclick="pickerEnter(\''+f.id+'\',\''+f.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\',\''+f.driveId+'\')">'
           +'<span style="font-size:18px">&#128193;</span>'
           +'<div style="flex:1"><div style="font-weight:500">'+f.name+'</div>'
           +'<div style="font-size:12px;color:var(--muted)">'+f.count+' item'+(f.count!==1?'s':'')+'</div></div>'
           +'<span style="color:var(--muted);font-size:16px">&#8250;</span></div>';
       });
     }
-    listEl.innerHTML=html;
+    listEl.innerHTML = html;
   }
-  function fail(e){loadEl.textContent='Error: '+e.message;loadEl.style.display='block';listEl.style.display='none';}
-  if(DEMO_MODE||state.accessToken==='demo_token'){
-    setTimeout(function(){
-      if(!parentId) render(picker.location==='my'
-        ?[{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]
-        :[{id:'f005',name:'Shared Assessment Folder',count:4,driveId:'demo'},{id:'f006',name:'Dept Marking UNIT305',count:2,driveId:'demo'}]);
+
+  function fail(e) { loadEl.textContent = 'Error: '+e.message; loadEl.style.display='block'; listEl.style.display='none'; }
+
+  if (DEMO_MODE || state.accessToken === 'demo_token') {
+    setTimeout(function() {
+      if (!parentId) render(picker.location === 'my'
+        ? [{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]
+        : [{id:'f005',name:'Shared Assessment Folder',count:4,driveId:'demo'},{id:'f006',name:'Dept Marking UNIT305',count:2,driveId:'demo'}]);
       else render([{id:parentId+'_s1',name:'Submissions',count:8,driveId:driveId||''},{id:parentId+'_s2',name:'Marking Guides',count:2,driveId:driveId||''}]);
-    },400);
+    }, 400);
     return;
   }
-  if(!parentId){
-    if(picker.location==='my'){
-      graphFetch('/me/drive/root/children?$select=id,name,folder&$top=100').then(function(d){
-        render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:''};} ));
+
+  if (!parentId) {
+    if (picker.location === 'my') {
+      graphFetch('/me/drive/root/children?$select=id,name,folder,remoteItem&$top=100').then(function(d) {
+        render((d.value||[]).filter(function(i){return i.folder||i.remoteItem;}).map(function(i) {
+          var ri = i.remoteItem;
+          return {id:ri?ri.id:i.id, name:i.name, count:(ri?(ri.folder&&ri.folder.childCount)||0:(i.folder&&i.folder.childCount)||0), driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
+        }));
       }).catch(fail);
     } else {
-      graphFetch('/me/drive/sharedWithMe?$select=id,name,folder,remoteItem').then(function(d){
-        render((d.value||[]).filter(function(i){return i.folder||(i.remoteItem&&i.remoteItem.folder);}).map(function(i){
-          var ri=i.remoteItem;
-          return {id:ri?ri.id:i.id,name:i.name,count:((ri&&ri.folder)||i.folder||{}).childCount||0,driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
+      graphFetch('/me/drive/sharedWithMe?$select=id,name,folder,remoteItem').then(function(d) {
+        render((d.value||[]).filter(function(i){return i.folder||(i.remoteItem&&i.remoteItem.folder);}).map(function(i) {
+          var ri = i.remoteItem;
+          return {id:ri?ri.id:i.id, name:i.name, count:((ri&&ri.folder)||i.folder||{}).childCount||0, driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
         }));
       }).catch(fail);
     }
   } else {
-    var path=driveId?'/drives/'+driveId+'/items/'+parentId+'/children?$select=id,name,folder&$top=100':'/me/drive/items/'+parentId+'/children?$select=id,name,folder&$top=100';
-    graphFetch(path).then(function(d){
-      render((d.value||[]).filter(function(i){return i.folder;}).map(function(i){return {id:i.id,name:i.name,count:i.folder.childCount,driveId:driveId||''};}));
+    var path = driveId
+      ? '/drives/'+driveId+'/items/'+parentId+'/children?$select=id,name,folder,remoteItem&$top=100'
+      : '/me/drive/items/'+parentId+'/children?$select=id,name,folder,remoteItem&$top=100';
+    graphFetch(path).then(function(d) {
+      render((d.value||[]).filter(function(i){return i.folder||i.remoteItem;}).map(function(i) {
+        var ri = i.remoteItem;
+        return {id:ri?ri.id:i.id, name:i.name, count:(ri?(ri.folder&&ri.folder.childCount)||0:(i.folder&&i.folder.childCount)||0), driveId:ri?(ri.parentReference&&ri.parentReference.driveId)||'':driveId||''};
+      }));
     }).catch(fail);
   }
 }
-function pickerEnter(id,name,driveId){pickerStack.push({id:id,name:name,driveId:driveId});pickerLoad(id,driveId);}
-function pickerDrawBreadcrumb(){
-  var el=document.getElementById('picker-breadcrumb');if(!el)return;
-  var root=picker.location==='my'?'My OneDrive':'Shared with me';
-  var html='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">&#128193; '+root+'</span>';
-  pickerStack.forEach(function(f,i){
-    html+=' <span style="color:var(--muted)">&#8250;</span> ';
-    if(i<pickerStack.length-1) html+='<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo('+i+')">'+f.name+'</span>';
-    else html+='<span style="font-weight:500;color:var(--text)">'+f.name+'</span>';
+
+function pickerEnter(id, name, driveId) { pickerStack.push({id:id,name:name,driveId:driveId}); pickerLoad(id, driveId); }
+
+function pickerDrawBreadcrumb() {
+  var el = document.getElementById('picker-breadcrumb'); if (!el) return;
+  var root = picker.location === 'my' ? 'My OneDrive' : 'Shared with me';
+  var html = '<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">&#128193; '+root+'</span>';
+  pickerStack.forEach(function(f, i) {
+    html += ' <span style="color:var(--muted)">&#8250;</span> ';
+    if (i < pickerStack.length-1) html += '<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo('+i+')">'+f.name+'</span>';
+    else html += '<span style="font-weight:500;color:var(--text)">'+f.name+'</span>';
   });
-  el.innerHTML=html;
+  el.innerHTML = html;
 }
-function pickerGoTo(idx){pickerStack=pickerStack.slice(0,idx+1);if(idx<0)pickerLoad(null,null);else pickerLoad(pickerStack[idx].id,pickerStack[idx].driveId);}
-function pickerConfirm(id,name,driveId){
-  picker.folderId=id;picker.folderName=name;picker.driveId=driveId||'';
+
+function pickerGoTo(idx) { pickerStack = pickerStack.slice(0,idx+1); if(idx<0) pickerLoad(null,null); else pickerLoad(pickerStack[idx].id, pickerStack[idx].driveId); }
+
+function pickerConfirm(id, name, driveId) {
+  picker.folderId = id; picker.folderName = name; picker.driveId = driveId||'';
   document.getElementById('picker-selected').classList.remove('hidden');
-  document.getElementById('picker-selected-name').textContent=name;
-  document.getElementById('unit-name-input').value=name.split('/').pop().trim();
-  document.getElementById('continue-btn').disabled=false;
+  document.getElementById('picker-selected-name').textContent = name;
+  document.getElementById('unit-name-input').value = name.split('/').pop().trim();
+  document.getElementById('continue-btn').disabled = false;
 }
-function pickerBack(){
-  pickerStack=[];picker.folderId=null;
+
+function pickerBack() {
+  pickerStack = []; picker.folderId = null;
   document.getElementById('setup-step-2').classList.add('hidden');
   document.getElementById('picker-selected').classList.add('hidden');
-  document.getElementById('continue-btn').disabled=true;
+  document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
   document.getElementById('loc-btn-shared').classList.remove('btn-primary');
 }
-function completeSetup(){
-  if(!picker.folderId){alert('Please select a folder first.');return;}
-  state.config.sharedFolderPath=picker.folderName;state.config.sharedFolderId=picker.folderId;state.config.sharedDriveId=picker.driveId||null;
-  state.config.unitName=document.getElementById('unit-name-input').value||picker.folderName;
-  localStorage.setItem('rm_config',JSON.stringify(state.config));loadApp();
+
+function completeSetup() {
+  if (!picker.folderId) { alert('Please select a folder first.'); return; }
+  state.config.sharedFolderPath = picker.folderName;
+  state.config.sharedFolderId   = picker.folderId;
+  state.config.sharedDriveId    = picker.driveId || null;
+  state.config.unitName = document.getElementById('unit-name-input').value || picker.folderName;
+  localStorage.setItem('rm_config', JSON.stringify(state.config));
+  loadApp();
 }
 
 // ─── STUDENTS ─────────────────────────────────────────────────────────────────
-function loadStudents(){
-  var sid=state.config.sharedFolderId;
-  if(!sid||DEMO_MODE||state.accessToken==='demo_token'){
-    state.students=[
+function loadStudents() {
+  var sid = state.config.sharedFolderId;
+  if (!sid || DEMO_MODE || state.accessToken === 'demo_token') {
+    state.students = [
       {id:'22045123',name:'Alice Johnson',hasPdf:true,pdfItemId:'pdf001'},
       {id:'22051884',name:'Ben Tran',hasPdf:true,pdfItemId:'pdf002'},
       {id:'22033291',name:'Chloe Davies',hasPdf:false,pdfItemId:null},
@@ -677,102 +813,172 @@ function loadStudents(){
       {id:'22098765',name:'Grace Liu',hasPdf:true,pdfItemId:'pdf007'},
       {id:'22034567',name:'Hamid Reza',hasPdf:true,pdfItemId:'pdf008'}
     ];
-    renderStudentList();updateDashboard();return;
+    renderStudentList(); updateDashboard(); return;
   }
-  var driveId=state.config.sharedDriveId;
-  var path=driveId?'/drives/'+driveId+'/items/'+sid+'/children?$select=id,name,folder&$top=200':'/me/drive/items/'+sid+'/children?$select=id,name,folder&$top=200';
-  graphFetch(path).then(function(data){
-    var folders=(data.value||[]).filter(function(i){return i.folder;});
-    var promises=folders.map(function(folder){
-      var match=folder.name.match(/^(.+?)_(\d{6,12})_assignsubmission_file/);
-      if(!match)return Promise.resolve(null);
-      var name=match[1].replace(/_/g,' ').trim(),id=match[2];
-      var cp=driveId?'/drives/'+driveId+'/items/'+folder.id+'/children?$select=id,name,file':'/me/drive/items/'+folder.id+'/children?$select=id,name,file';
-      return graphFetch(cp).then(function(contents){
-        var pdf=(contents.value||[]).find(function(f){return f.name&&f.name.toLowerCase().endsWith('.pdf');});
-        return {id:id,name:name,folderId:folder.id,hasPdf:!!pdf,pdfItemId:pdf?pdf.id:null};
-      }).catch(function(){return {id:id,name:name,folderId:folder.id,hasPdf:false,pdfItemId:null};});
+  var driveId = state.config.sharedDriveId;
+  var path = driveId
+    ? '/drives/'+driveId+'/items/'+sid+'/children?$select=id,name,folder&$top=200'
+    : '/me/drive/items/'+sid+'/children?$select=id,name,folder&$top=200';
+  graphFetch(path).then(function(data) {
+    var folders = (data.value||[]).filter(function(i){return i.folder;});
+    var promises = folders.map(function(folder) {
+      var match = folder.name.match(/^(.+?)_(\d{6,12})_assignsubmission_file/);
+      if (!match) return Promise.resolve(null);
+      var name = match[1].replace(/_/g,' ').trim(), id = match[2];
+      var cp = driveId
+        ? '/drives/'+driveId+'/items/'+folder.id+'/children?$select=id,name,file'
+        : '/me/drive/items/'+folder.id+'/children?$select=id,name,file';
+      return graphFetch(cp).then(function(contents) {
+        var pdf = (contents.value||[]).find(function(f){return f.name&&f.name.toLowerCase().endsWith('.pdf');});
+        return {id:id, name:name, folderId:folder.id, hasPdf:!!pdf, pdfItemId:pdf?pdf.id:null};
+      }).catch(function() { return {id:id, name:name, folderId:folder.id, hasPdf:false, pdfItemId:null}; });
     });
     return Promise.all(promises);
-  }).then(function(students){
-    state.students=students.filter(Boolean).sort(function(a,b){return a.name.localeCompare(b.name);});
-    if(!state.students.length)alert('No student folders found.');
-    renderStudentList();updateDashboard();
-  }).catch(function(e){alert('Could not load students: '+e.message);});
+  }).then(function(students) {
+    state.students = students.filter(Boolean).sort(function(a,b){return a.name.localeCompare(b.name);});
+    if (!state.students.length) alert('No student folders found.');
+    renderStudentList(); updateDashboard();
+  }).catch(function(e) { alert('Could not load students: '+e.message); });
 }
-function renderStudentList(filter){
-  filter=(filter||'').toLowerCase();
-  var items=state.students.filter(function(s){return s.name.toLowerCase().includes(filter)||s.id.includes(filter);});
-  document.getElementById('student-list').innerHTML=items.map(function(s){
-    var st=getStatus(state.grades[s.id]);
-    var active=state.selectedStudent&&state.selectedStudent.id===s.id?'active':'';
+
+function renderStudentList(filter) {
+  filter = (filter||'').toLowerCase();
+  var items = state.students.filter(function(s){return s.name.toLowerCase().includes(filter)||s.id.includes(filter);});
+  document.getElementById('student-list').innerHTML = items.map(function(s) {
+    var st = getStatus(state.grades[s.id]);
+    var active = state.selectedStudent && state.selectedStudent.id === s.id ? 'active' : '';
     return '<div class="student-item '+active+'" onclick="selectStudent(\''+s.id+'\')"><div class="s-name">'+s.name+'</div>'
       +'<div class="s-meta"><span>'+s.id+'</span><span class="badge badge-'+st.cls+'">'+st.label+'</span></div></div>';
   }).join('');
 }
-function filterStudents(v){renderStudentList(v);}
-function requiresSecondMark(g){if(!g||g.mark1===undefined)return false;var max=getTotalMaxMarks();return max>0&&(g.mark1/max)<0.5;}
-function getStatus(g){
-  if(!g)return{label:'Unmarked',cls:'none'};
-  if(g.moderatorGrade!==undefined)return{label:'Complete',cls:'complete'};
-  if(g.mark2!==undefined){var pct=getTotalMaxMarks()>0?Math.abs(g.mark1-g.mark2)/getTotalMaxMarks()*100:0;return pct>state.config.threshold?{label:'Flagged',cls:'flagged'}:{label:'Complete',cls:'complete'};}
-  if(g.mark1!==undefined){if(requiresSecondMark(g))return{label:'Needs 2nd mark',cls:'flagged'};return{label:'1st marked',cls:'marked'};}
-  return{label:'Unmarked',cls:'none'};
-}
-function getTotalMaxMarks(){return Math.round(state.rubric.criteria.reduce(function(a,c){return a+(parseFloat(c.maxMark)||0);},0)*100)/100;}
-function selectStudent(id){state.selectedStudent=state.students.find(function(s){return s.id===id;});renderStudentList(document.getElementById('search-box').value);showTab('mark');loadMarkingInterface();}
-function selectNextUnmarked(){var next=state.students.find(function(s){return !state.grades[s.id];});if(next)selectStudent(next.id);else alert('All submissions have been marked!');}
-function prevStudent(){var idx=state.students.findIndex(function(s){return s.id===(state.selectedStudent&&state.selectedStudent.id);});if(idx>0)selectStudent(state.students[idx-1].id);}
-function nextStudent(){var idx=state.students.findIndex(function(s){return s.id===(state.selectedStudent&&state.selectedStudent.id);});if(idx<state.students.length-1)selectStudent(state.students[idx+1].id);}
 
-// ─── MARKING INTERFACE ────────────────────────────────────────────────────────
-function loadMarkingInterface(){
-  var s=state.selectedStudent;if(!s)return;
-  state.pdfDoc=null;state.pdfPage=1;
+function filterStudents(v) { renderStudentList(v); }
+
+function requiresSecondMark(g) {
+  if (!g || g.mark1 === undefined) return false;
+  var max = getTotalMaxMarks();
+  return max > 0 && (g.mark1 / max) < 0.5;
+}
+
+function getStatus(g) {
+  if (!g) return {label:'Unmarked',cls:'none'};
+  if (g.moderatorGrade !== undefined) return {label:'Complete',cls:'complete'};
+  if (g.mark2 !== undefined) {
+    var pct = getTotalMaxMarks()>0 ? Math.abs(g.mark1-g.mark2)/getTotalMaxMarks()*100 : 0;
+    return pct > state.config.threshold ? {label:'Flagged',cls:'flagged'} : {label:'Complete',cls:'complete'};
+  }
+  if (g.mark1 !== undefined) {
+    if (requiresSecondMark(g)) return {label:'Needs 2nd mark',cls:'flagged'};
+    return {label:'1st marked',cls:'marked'};
+  }
+  return {label:'Unmarked',cls:'none'};
+}
+
+function getTotalMaxMarks() {
+  return Math.round(state.rubric.criteria.reduce(function(a,c){return a+(parseFloat(c.maxMark)||0);},0)*100)/100;
+}
+
+function selectStudent(id) {
+  state.selectedStudent = state.students.find(function(s){return s.id===id;});
+  renderStudentList(document.getElementById('search-box').value);
+  showTab('mark'); loadMarkingInterface();
+}
+
+function selectNextUnmarked() {
+  var next = state.students.find(function(s){return !state.grades[s.id];});
+  if (next) selectStudent(next.id); else alert('All submissions have been marked!');
+}
+
+function prevStudent() {
+  var idx = state.students.findIndex(function(s){return s.id===(state.selectedStudent&&state.selectedStudent.id);});
+  if (idx > 0) selectStudent(state.students[idx-1].id);
+}
+
+function nextStudent() {
+  var idx = state.students.findIndex(function(s){return s.id===(state.selectedStudent&&state.selectedStudent.id);});
+  if (idx < state.students.length-1) selectStudent(state.students[idx+1].id);
+}
+
+// ─── MARKING ──────────────────────────────────────────────────────────────────
+function loadMarkingInterface() {
+  var s = state.selectedStudent; if (!s) return;
+  state.pdfDoc = null; state.pdfPage = 1;
   document.getElementById('no-student-msg').classList.add('hidden');
-  var mi=document.getElementById('marking-interface');mi.classList.remove('hidden');mi.style.display='flex';
-  document.getElementById('marking-student-name').textContent=s.name;
-  document.getElementById('marking-student-id').textContent='Student ID: '+s.id;
+  var mi = document.getElementById('marking-interface');
+  mi.classList.remove('hidden'); mi.style.display = 'flex';
+  document.getElementById('marking-student-name').textContent = s.name;
+  document.getElementById('marking-student-id').textContent = 'Student ID: '+s.id;
   renderMarkingPanel();
-  if(s.hasPdf){renderPdfPanel();loadAnnotationCanvas();renderStudentPdf(s);}
+  if (s.hasPdf) { renderPdfPanel(); loadAnnotationCanvas(); renderStudentPdf(s); }
   else renderNoPdfPanel();
 }
-function renderMarkingPanel(){
-  var s=state.selectedStudent,g=state.grades[s.id]||{},existing=g.criteria||{};
-  var isSecond=g.mark1!==undefined&&g.mark1Marker!==state.user.name;
-  var secondRequired=requiresSecondMark(g);
-  var html='';
-  if(isSecond) html+='<div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--primary);font-weight:500">&#128274; Blind second marking &#8212; first marker\'s scores are hidden.</div>';
-  else if(g.mark1!==undefined&&!secondRequired) html+='<div style="background:var(--success-light);border:1px solid var(--success);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--success)">&#10003; Passing grade &#8212; second mark optional. Final grade already generated.</div>';
-  else if(g.mark1!==undefined&&secondRequired) html+='<div style="background:var(--danger-light);border:1px solid var(--danger);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--danger)">&#9888; Failing grade &#8212; second mark required before final grade is generated.</div>';
-  html+='<div class="card" style="margin-bottom:0"><div class="flex items-center justify-between" style="margin-bottom:.75rem"><h3 style="margin-bottom:0">Rubric</h3><span id="total-score-display" class="score-display">0 / '+getTotalMaxMarks()+'</span></div><div id="criteria-marking">';
-  state.rubric.criteria.forEach(function(c){
-    var entry=!isSecond?existing[c.id]:null;
-    html+='<div class="criterion-mark" id="cm-'+c.id+'"><h4>'+c.name+' <span class="max-mark">/ '+c.maxMark+' marks</span></h4><div class="level-buttons">';
-    c.levels.forEach(function(l){var sel=entry&&entry.label===l.label?'selected':'';html+='<button class="level-btn '+sel+'" onclick="selectLevel(\''+c.id+'\',\''+l.label.replace(/'/g,"\\'")+'\','+l.marks+','+c.maxMark+',this)">'+l.label+'</button>';});
-    html+='</div>';
-    c.levels.forEach(function(l){html+='<div class="level-desc-tip" id="desc-'+c.id+'-'+l.label.replace(/\W+/g,'_')+'">'+l.desc+'</div>';});
-    html+='<div class="flex items-center gap-sm" style="margin-bottom:6px"><span class="text-muted" style="font-size:13px">Mark:</span>'
-      +'<input type="number" id="cs-input-'+c.id+'" min="0" max="'+c.maxMark+'" value="'+(entry?entry.marks:'')+'" placeholder="&#8212;" '
+
+function renderMarkingPanel() {
+  var s = state.selectedStudent, g = state.grades[s.id]||{}, existing = g.criteria||{};
+  var isSecond = (g.mark1 !== undefined && g.mark1Marker !== state.user.name) || s._forceSecondMark;
+  var secondRequired = requiresSecondMark(g);
+
+  // Show/hide second mark button
+  var secondBtn = document.getElementById('second-mark-btn');
+  if (secondBtn) {
+    // Show if: first mark exists, not already second marked, same marker as first, passing grade
+    var canForceSecond = g.mark1 !== undefined && g.mark2 === undefined
+      && g.mark1Marker === state.user.name && !s._forceSecondMark && !secondRequired;
+    secondBtn.style.display = canForceSecond ? 'inline-flex' : 'none';
+  }
+
+  var html = '';
+  if (isSecond) html += '<div style="background:var(--primary-light);border:1px solid var(--primary);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--primary);font-weight:500">Blind second marking - first marker scores are hidden.</div>';
+  else if (g.mark1 !== undefined && !secondRequired) html += '<div style="background:var(--success-light);border:1px solid var(--success);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--success)">Passing grade - second mark optional. Final grade already generated.</div>';
+  else if (g.mark1 !== undefined && secondRequired) html += '<div style="background:var(--danger-light);border:1px solid var(--danger);border-radius:var(--radius-lg);padding:.75rem 1rem;font-size:14px;color:var(--danger)">Failing grade - second mark required before final grade is generated.</div>';
+
+  html += '<div class="card" style="margin-bottom:0">'
+    +'<div class="flex items-center justify-between" style="margin-bottom:.75rem">'
+    +'<h3 style="margin-bottom:0">Rubric</h3>'
+    +'<span id="total-score-display" class="score-display">0 / '+getTotalMaxMarks()+'</span></div>'
+    +'<div id="criteria-marking">';
+
+  state.rubric.criteria.forEach(function(c) {
+    var entry = !isSecond ? existing[c.id] : null;
+    html += '<div class="criterion-mark" id="cm-'+c.id+'">'
+      +'<h4>'+c.name+' <span class="max-mark">/ '+c.maxMark+' marks</span></h4>'
+      +'<div class="level-buttons">';
+    c.levels.forEach(function(l) {
+      var sel = entry && entry.label === l.label ? 'selected' : '';
+      html += '<button class="level-btn '+sel+'" onclick="selectLevel(\''+c.id+'\',\''+l.label.replace(/'/g,"\\'")+'\','+l.marks+','+c.maxMark+',this)">'+l.label+'</button>';
+    });
+    html += '</div>';
+    c.levels.forEach(function(l) {
+      html += '<div class="level-desc-tip" id="desc-'+c.id+'-'+l.label.replace(/\W+/g,'_')+'">'+l.desc+'</div>';
+    });
+    html += '<div class="flex items-center gap-sm" style="margin-bottom:6px">'
+      +'<span class="text-muted" style="font-size:13px">Mark:</span>'
+      +'<input type="number" id="cs-input-'+c.id+'" min="0" max="'+c.maxMark+'" step="0.5" value="'+(entry?entry.marks:'')+'" placeholder="-" '
       +'style="width:70px;border:1px solid var(--border);border-radius:var(--radius);padding:3px 7px;font-size:13px;font-weight:600;color:var(--primary)" oninput="updateTotalScoreDisplay()">'
       +'<span class="text-muted" style="font-size:13px">/ '+c.maxMark+'</span></div>'
-      +'<textarea class="criterion-comment" id="cc-'+c.id+'" placeholder="Comment on this criterion&#8230;">'+(entry&&entry.comment?entry.comment:'')+'</textarea></div>';
+      +'<textarea class="criterion-comment" id="cc-'+c.id+'" placeholder="Comment on this criterion...">'+(entry&&entry.comment?entry.comment:'')+'</textarea>'
+      +'</div>';
   });
-  html+='</div><hr class="divider"><div class="form-group"><label for="overall-comments">Overall comments</label>'
-    +'<textarea id="overall-comments" placeholder="Overall feedback&#8230;" style="min-height:90px">'+(!isSecond&&g.overallComment?g.overallComment:'')+'</textarea></div></div>';
-  document.getElementById('marking-panel').innerHTML=html;
+
+  html += '</div><hr class="divider">'
+    +'<div class="form-group"><label for="overall-comments">Overall comments</label>'
+    +'<textarea id="overall-comments" placeholder="Overall feedback..." style="min-height:90px">'+(!isSecond&&g.overallComment?g.overallComment:'')+'</textarea>'
+    +'</div></div>';
+
+  document.getElementById('marking-panel').innerHTML = html;
   updateTotalScoreDisplay();
 }
-function toggleRubricPanel(){
-  var layout=document.getElementById('marking-layout'),btn=document.getElementById('rubric-toggle-btn');
-  var hidden=layout.classList.toggle('panel-hidden');
-  if(btn)btn.innerHTML=hidden?'&#8250;':'&#8249;';
-  setTimeout(function(){if(state.pdfFitWidth&&state.pdfDoc)renderPdfPage();},220);
+
+function toggleRubricPanel() {
+  var layout = document.getElementById('marking-layout'), btn = document.getElementById('rubric-toggle-btn');
+  var hidden = layout.classList.toggle('panel-hidden');
+  if (btn) btn.innerHTML = hidden ? '&#8250;' : '&#8249;';
+  setTimeout(function() { if (state.pdfFitWidth && state.pdfDoc) renderPdfPage(); }, 220);
 }
 
-// ─── PDF PANEL ────────────────────────────────────────────────────────────────
-function renderPdfPanel(){
-  document.getElementById('pdf-panel').innerHTML=
+// ─── PDF ──────────────────────────────────────────────────────────────────────
+function renderPdfPanel() {
+  document.getElementById('pdf-panel').innerHTML =
     '<div id="pdf-toolbar">'
     +'<button onclick="changeTool(\'pan\')" id="tool-pan" class="active">Pan</button>'
     +'<button onclick="changeTool(\'pen\')" id="tool-pen">Pen</button>'
@@ -792,12 +998,12 @@ function renderPdfPanel(){
     +'<button onclick="undoAnnotation()">Undo</button>'
     +'<button onclick="clearAnnotations()">Clear</button>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
-    +'<button onclick="pdfZoom(-0.25)">&#8722;</button>'
+    +'<button onclick="pdfZoom(-0.25)">-</button>'
     +'<span id="zoom-label" style="color:#aaa;font-size:12px;min-width:36px;text-align:center">Fit</span>'
     +'<button onclick="pdfZoom(0.25)">+</button>'
     +'<button onclick="pdfFitToWidth()" id="btn-fit" style="background:var(--primary)">Fit</button>'
     +'<span style="background:#555;width:1px;height:20px;display:inline-block;margin:0 4px"></span>'
-    +'<span style="color:#999;font-size:12px" id="page-info">Loading&#8230;</span>'
+    +'<span style="color:#999;font-size:12px" id="page-info">Loading...</span>'
     +'<button onclick="changePdfPage(-1)">&#8249;</button>'
     +'<button onclick="changePdfPage(1)">&#8250;</button>'
     +'</div>'
@@ -807,363 +1013,642 @@ function renderPdfPanel(){
     +'<canvas id="annotation-canvas" style="position:absolute;top:0;left:0;cursor:crosshair"></canvas>'
     +'</div></div>';
 }
-function renderNoPdfPanel(){
-  document.getElementById('pdf-panel').innerHTML=
+
+function renderNoPdfPanel() {
+  document.getElementById('pdf-panel').innerHTML =
     '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:1rem;padding:2rem;text-align:center">'
     +'<span style="font-size:48px;opacity:.35">&#128196;</span>'
     +'<p style="color:#aaa;font-size:15px;font-weight:500">No PDF submission found</p>'
     +'<p style="color:#777;font-size:13px;max-width:320px">The student\'s folder doesn\'t contain a PDF file.</p>'
-    +'<textarea id="no-pdf-note" placeholder="Submission note&#8230;" style="width:100%;max-width:380px;background:#333;border:1px solid #555;border-radius:6px;color:#eee;padding:8px;font-size:13px;resize:vertical;min-height:70px;font-family:inherit"></textarea>'
+    +'<textarea id="no-pdf-note" placeholder="Submission note..." style="width:100%;max-width:380px;background:#333;border:1px solid #555;border-radius:6px;color:#eee;padding:8px;font-size:13px;resize:vertical;min-height:70px;font-family:inherit"></textarea>'
     +'<button onclick="document.getElementById(\'pdf-upload-input\').click()" style="background:#333;color:#ccc;border:1px solid #555;border-radius:6px;padding:7px 14px;font-size:13px;cursor:pointer">Upload PDF manually</button>'
     +'<input type="file" id="pdf-upload-input" accept=".pdf" style="display:none" onchange="handleManualPdfUpload(this)"></div>';
 }
-function handleManualPdfUpload(input){if(!input.files[0])return;state.selectedStudent.hasPdf=true;alert('PDF received.');loadMarkingInterface();}
 
-// ─── PDF RENDERING ────────────────────────────────────────────────────────────
-function renderStudentPdf(student){
-  var pageInfo=document.getElementById('page-info');
-  if(!student.pdfItemId||DEMO_MODE||state.accessToken==='demo_token'){renderDemoPdf();return;}
-  if(pageInfo)pageInfo.textContent='Loading…';
-  var driveId=state.config.sharedDriveId;
-  var path=driveId?'/drives/'+driveId+'/items/'+student.pdfItemId+'/content':'/me/drive/items/'+student.pdfItemId+'/content';
-  acquireTokenSilent().then(function(){return fetch(GRAPH+path,{headers:{Authorization:'Bearer '+state.accessToken}});})
-    .then(function(res){if(!res.ok)throw new Error('HTTP '+res.status);return res.arrayBuffer();})
-    .then(function(buf){return pdfjsLib.getDocument({data:buf}).promise;})
-    .then(function(doc){state.pdfDoc=doc;state.pdfPage=1;renderPdfPage();})
-    .catch(function(e){console.error('PDF load error:',e);if(pageInfo)pageInfo.textContent='PDF load failed';renderDemoPdf();});
+function handleManualPdfUpload(input) {
+  if (!input.files[0]) return;
+  state.selectedStudent.hasPdf = true;
+  alert('PDF received.');
+  loadMarkingInterface();
 }
-function renderPdfPage(){
-  if(!state.pdfDoc)return;
-  state.pdfDoc.getPage(state.pdfPage).then(function(page){
-    var wrap=document.getElementById('pdf-canvas-wrap'),canvas=document.getElementById('pdf-canvas');
-    var ann=document.getElementById('annotation-canvas'),inner=document.getElementById('pdf-canvas-inner');
-    if(!canvas||!wrap)return;
-    var scale=state.pdfScale;
-    if(state.pdfFitWidth){var vp0=page.getViewport({scale:1});scale=(wrap.clientWidth-24)/vp0.width;state.pdfScale=scale;}
-    var vp=page.getViewport({scale:scale});
-    canvas.width=vp.width;canvas.height=vp.height;
-    if(ann){ann.width=vp.width;ann.height=vp.height;ann.style.width=canvas.offsetWidth+'px';ann.style.height=canvas.offsetHeight+'px';}
-    if(inner){inner.style.width=vp.width+'px';inner.style.height=vp.height+'px';}
-    page.render({canvasContext:canvas.getContext('2d'),viewport:vp}).promise.then(function(){
-      var pi=document.getElementById('page-info');if(pi)pi.textContent='Page '+state.pdfPage+' / '+state.pdfDoc.numPages;
-      var zl=document.getElementById('zoom-label');if(zl)zl.textContent=state.pdfFitWidth?'Fit':Math.round(scale*100)+'%';
+
+function renderStudentPdf(student) {
+  var pageInfo = document.getElementById('page-info');
+  if (!student.pdfItemId || DEMO_MODE || state.accessToken === 'demo_token') { renderDemoPdf(); return; }
+  if (pageInfo) pageInfo.textContent = 'Loading...';
+  var driveId = state.config.sharedDriveId;
+  var path = driveId
+    ? '/drives/'+driveId+'/items/'+student.pdfItemId+'/content'
+    : '/me/drive/items/'+student.pdfItemId+'/content';
+  acquireTokenSilent().then(function() {
+    return fetch(GRAPH+path, {headers:{Authorization:'Bearer '+state.accessToken}});
+  }).then(function(res) {
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    return res.arrayBuffer();
+  }).then(function(buf) {
+    return pdfjsLib.getDocument({data:buf}).promise;
+  }).then(function(doc) {
+    state.pdfDoc = doc; state.pdfPage = 1; renderPdfPage();
+  }).catch(function(e) {
+    console.error('PDF load error:', e);
+    if (pageInfo) pageInfo.textContent = 'PDF load failed';
+    renderDemoPdf();
+  });
+}
+
+function renderPdfPage() {
+  if (!state.pdfDoc) return;
+  state.pdfDoc.getPage(state.pdfPage).then(function(page) {
+    var wrap = document.getElementById('pdf-canvas-wrap');
+    var canvas = document.getElementById('pdf-canvas');
+    var ann = document.getElementById('annotation-canvas');
+    var inner = document.getElementById('pdf-canvas-inner');
+    if (!canvas || !wrap) return;
+    var scale = state.pdfScale;
+    if (state.pdfFitWidth) {
+      var vp0 = page.getViewport({scale:1});
+      scale = (wrap.clientWidth - 24) / vp0.width;
+      state.pdfScale = scale;
+    }
+    var vp = page.getViewport({scale:scale});
+    canvas.width = vp.width; canvas.height = vp.height;
+    if (ann) { ann.width = vp.width; ann.height = vp.height; ann.style.width = canvas.offsetWidth+'px'; ann.style.height = canvas.offsetHeight+'px'; }
+    if (inner) { inner.style.width = vp.width+'px'; inner.style.height = vp.height+'px'; }
+    page.render({canvasContext:canvas.getContext('2d'), viewport:vp}).promise.then(function() {
+      var pi = document.getElementById('page-info');
+      if (pi) pi.textContent = 'Page '+state.pdfPage+' / '+state.pdfDoc.numPages;
+      var zl = document.getElementById('zoom-label');
+      if (zl) zl.textContent = state.pdfFitWidth ? 'Fit' : Math.round(scale*100)+'%';
       redrawAnnotations();
     });
   });
 }
-function pdfZoom(delta){state.pdfFitWidth=false;state.pdfScale=Math.max(0.25,Math.min(4,state.pdfScale+delta));var btn=document.getElementById('btn-fit');if(btn)btn.style.background='#333';renderPdfPage();}
-function pdfFitToWidth(){state.pdfFitWidth=true;var btn=document.getElementById('btn-fit');if(btn)btn.style.background='var(--primary)';renderPdfPage();}
-function handlePdfWheel(e){if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();pdfZoom(e.deltaY<0?0.15:-0.15);}
-function changePdfPage(dir){if(!state.pdfDoc)return;var next=state.pdfPage+dir;if(next<1||next>state.pdfDoc.numPages)return;state.pdfPage=next;renderPdfPage();}
-function renderDemoPdf(){
-  var canvas=document.getElementById('pdf-canvas');if(!canvas)return;
-  var ctx=canvas.getContext('2d');canvas.width=595;canvas.height=842;
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,595,842);ctx.fillStyle='#1a1a1a';ctx.font='bold 17px sans-serif';
-  ctx.fillText((state.selectedStudent?state.selectedStudent.name:'Student')+' — Submission',40,50);
-  ctx.font='13px sans-serif';ctx.fillStyle='#6b7280';ctx.fillText('Student ID: '+(state.selectedStudent?state.selectedStudent.id:''),40,72);
-  ctx.fillStyle='#e5e7eb';ctx.fillRect(40,88,515,1);ctx.fillStyle='#374151';
-  ['Demo PDF — real submission loads from OneDrive in production.','','Use toolbar to annotate with pen, highlight, or text notes.'].forEach(function(l,i){ctx.fillText(l,40,110+i*22);});
-  var pi=document.getElementById('page-info');if(pi)pi.textContent='Demo — 1/1';
+
+function pdfZoom(delta) {
+  state.pdfFitWidth = false;
+  state.pdfScale = Math.max(0.25, Math.min(4, state.pdfScale+delta));
+  var btn = document.getElementById('btn-fit'); if (btn) btn.style.background = '#333';
+  renderPdfPage();
+}
+
+function pdfFitToWidth() {
+  state.pdfFitWidth = true;
+  var btn = document.getElementById('btn-fit'); if (btn) btn.style.background = 'var(--primary)';
+  renderPdfPage();
+}
+
+function handlePdfWheel(e) {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  pdfZoom(e.deltaY < 0 ? 0.15 : -0.15);
+}
+
+function changePdfPage(dir) {
+  if (!state.pdfDoc) return;
+  var next = state.pdfPage + dir;
+  if (next < 1 || next > state.pdfDoc.numPages) return;
+  state.pdfPage = next; renderPdfPage();
+}
+
+function renderDemoPdf() {
+  var canvas = document.getElementById('pdf-canvas'); if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  canvas.width = 595; canvas.height = 842;
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,595,842);
+  ctx.fillStyle = '#1a1a1a'; ctx.font = 'bold 17px sans-serif';
+  ctx.fillText((state.selectedStudent?state.selectedStudent.name:'Student')+' - Submission', 40, 50);
+  ctx.font = '13px sans-serif'; ctx.fillStyle = '#6b7280';
+  ctx.fillText('Student ID: '+(state.selectedStudent?state.selectedStudent.id:''), 40, 72);
+  ctx.fillStyle = '#e5e7eb'; ctx.fillRect(40,88,515,1); ctx.fillStyle = '#374151';
+  ['Demo PDF - real submission loads from OneDrive in production.','','Use toolbar to annotate with pen, highlight, or text notes.'].forEach(function(l,i){ctx.fillText(l,40,110+i*22);});
+  var pi = document.getElementById('page-info'); if (pi) pi.textContent = 'Demo - 1/1';
 }
 
 // ─── ANNOTATIONS ──────────────────────────────────────────────────────────────
-function loadAnnotationCanvas(){
-  var pdf=document.getElementById('pdf-canvas'),ann=document.getElementById('annotation-canvas');
-  if(!pdf||!ann)return;
-  ann.width=pdf.width;ann.height=pdf.height;
-  ann.style.width=pdf.offsetWidth+'px';ann.style.height=pdf.offsetHeight+'px';
+function loadAnnotationCanvas() {
+  var pdf = document.getElementById('pdf-canvas'), ann = document.getElementById('annotation-canvas');
+  if (!pdf || !ann) return;
+  ann.width = pdf.width; ann.height = pdf.height;
+  ann.style.width = pdf.offsetWidth+'px'; ann.style.height = pdf.offsetHeight+'px';
   redrawAnnotations();
-  var getPos=function(e){
-    var r=ann.getBoundingClientRect(),sx=ann.width/r.width,sy=ann.height/r.height;
-    var src=e.touches?e.touches[0]:e;
-    return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy};
+  var getPos = function(e) {
+    var r = ann.getBoundingClientRect(), sx = ann.width/r.width, sy = ann.height/r.height;
+    var src = e.touches ? e.touches[0] : e;
+    return {x:(src.clientX-r.left)*sx, y:(src.clientY-r.top)*sy};
   };
-  ann.onmousedown=ann.ontouchstart=function(e){
-    if(state.currentTool==='pan')return;e.preventDefault();state.drawing=true;var pos=getPos(e);
-    if(state.currentTool==='text'){var text=prompt('Annotation text:');if(text){addAnn({type:'text',x:pos.x,y:pos.y,text:text,color:state.annColor});redrawAnnotations();}state.drawing=false;return;}
-    addAnn({type:state.currentTool==='highlight'?'highlight':'stroke',color:state.annColor,size:state.penSize,eraser:state.currentTool==='eraser',points:[pos]});
+  ann.onmousedown = ann.ontouchstart = function(e) {
+    if (state.currentTool === 'pan') return;
+    e.preventDefault(); state.drawing = true;
+    var pos = getPos(e);
+    if (state.currentTool === 'text') {
+      var text = prompt('Annotation text:');
+      if (text) { addAnn({type:'text',x:pos.x,y:pos.y,text:text,color:state.annColor}); redrawAnnotations(); }
+      state.drawing = false; return;
+    }
+    addAnn({type:state.currentTool==='highlight'?'highlight':'stroke', color:state.annColor, size:state.penSize, eraser:state.currentTool==='eraser', points:[pos]});
   };
-  ann.onmousemove=ann.ontouchmove=function(e){
-    if(!state.drawing)return;e.preventDefault();
-    var sid=state.selectedStudent&&state.selectedStudent.id,anns=state.annotations[sid];
-    if(!anns||!anns.length)return;anns[anns.length-1].points.push(getPos(e));redrawAnnotations();
+  ann.onmousemove = ann.ontouchmove = function(e) {
+    if (!state.drawing) return;
+    e.preventDefault();
+    var sid = state.selectedStudent && state.selectedStudent.id;
+    var anns = state.annotations[sid];
+    if (!anns || !anns.length) return;
+    anns[anns.length-1].points.push(getPos(e));
+    redrawAnnotations();
   };
-  ann.onmouseup=ann.ontouchend=function(){if(state.drawing){state.drawing=false;saveAnnotations();}};
+  ann.onmouseup = ann.ontouchend = function() {
+    if (state.drawing) { state.drawing = false; saveAnnotations(); }
+  };
 }
-function addAnn(ann){var sid=state.selectedStudent&&state.selectedStudent.id;if(!sid)return;if(!state.annotations[sid])state.annotations[sid]=[];state.annotations[sid].push(ann);}
-function redrawAnnotations(){
-  var canvas=document.getElementById('annotation-canvas');if(!canvas)return;
-  var ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);
-  var sid=state.selectedStudent&&state.selectedStudent.id;
-  (state.annotations[sid]||[]).forEach(function(a){
-    if(a.type==='stroke'||a.type==='highlight'){
-      ctx.globalCompositeOperation=a.eraser?'destination-out':'source-over';ctx.globalAlpha=a.type==='highlight'?0.35:1;
-      ctx.strokeStyle=a.color;ctx.lineWidth=a.type==='highlight'?16:(a.eraser?20:a.size);
-      ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+
+function addAnn(ann) {
+  var sid = state.selectedStudent && state.selectedStudent.id; if (!sid) return;
+  if (!state.annotations[sid]) state.annotations[sid] = [];
+  state.annotations[sid].push(ann);
+}
+
+function redrawAnnotations() {
+  var canvas = document.getElementById('annotation-canvas'); if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  var sid = state.selectedStudent && state.selectedStudent.id;
+  (state.annotations[sid]||[]).forEach(function(a) {
+    if (a.type === 'stroke' || a.type === 'highlight') {
+      ctx.globalCompositeOperation = a.eraser ? 'destination-out' : 'source-over';
+      ctx.globalAlpha = a.type === 'highlight' ? 0.35 : 1;
+      ctx.strokeStyle = a.color; ctx.lineWidth = a.type==='highlight'?16:(a.eraser?20:a.size);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
       a.points.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});
-      ctx.stroke();ctx.globalAlpha=1;ctx.globalCompositeOperation='source-over';
-    } else if(a.type==='text'){ctx.fillStyle=a.color;ctx.font='14px sans-serif';ctx.fillText(a.text,a.x,a.y);}
+      ctx.stroke(); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    } else if (a.type === 'text') {
+      ctx.fillStyle = a.color; ctx.font = '14px sans-serif'; ctx.fillText(a.text,a.x,a.y);
+    }
   });
 }
-function undoAnnotation(){var sid=state.selectedStudent&&state.selectedStudent.id;if(sid&&state.annotations[sid]&&state.annotations[sid].length){state.annotations[sid].pop();redrawAnnotations();}}
-function clearAnnotations(){var sid=state.selectedStudent&&state.selectedStudent.id;if(sid){state.annotations[sid]=[];redrawAnnotations();saveAnnotations();}}
-function changeTool(tool){
-  state.currentTool=tool;
-  document.querySelectorAll('#pdf-toolbar button[id^="tool-"]').forEach(function(b){b.classList.remove('active');});
-  var btn=document.getElementById('tool-'+tool);if(btn)btn.classList.add('active');
-  var c=document.getElementById('annotation-canvas');if(c)c.style.cursor=tool==='pan'?'default':tool==='text'?'text':'crosshair';
+
+function undoAnnotation() {
+  var sid = state.selectedStudent && state.selectedStudent.id;
+  if (sid && state.annotations[sid] && state.annotations[sid].length) { state.annotations[sid].pop(); redrawAnnotations(); }
 }
-function setAnnColor(color,el){state.annColor=color;document.querySelectorAll('.ann-color').forEach(function(e){e.classList.remove('active-color');});el.classList.add('active-color');}
+
+function clearAnnotations() {
+  var sid = state.selectedStudent && state.selectedStudent.id;
+  if (sid) { state.annotations[sid]=[]; redrawAnnotations(); saveAnnotations(); }
+}
+
+function changeTool(tool) {
+  state.currentTool = tool;
+  document.querySelectorAll('#pdf-toolbar button[id^="tool-"]').forEach(function(b){b.classList.remove('active');});
+  var btn = document.getElementById('tool-'+tool); if (btn) btn.classList.add('active');
+  var c = document.getElementById('annotation-canvas');
+  if (c) c.style.cursor = tool==='pan'?'default':tool==='text'?'text':'crosshair';
+}
+
+function setAnnColor(color, el) {
+  state.annColor = color;
+  document.querySelectorAll('.ann-color').forEach(function(e){e.classList.remove('active-color');});
+  el.classList.add('active-color');
+}
 
 // ─── RUBRIC BUILDER ───────────────────────────────────────────────────────────
-function renderRubricBuilder(){
-  document.getElementById('criteria-builder').innerHTML=state.rubric.criteria.map(function(c,ci){
-    var html='<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:.75rem">'
+function renderRubricBuilder() {
+  document.getElementById('criteria-builder').innerHTML = state.rubric.criteria.map(function(c,ci) {
+    var html = '<div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:1rem;margin-bottom:.75rem">'
       +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px;font-weight:500" type="text" value="'+c.name+'" placeholder="Criterion name" onchange="state.rubric.criteria['+ci+'].name=this.value;updateTotalMarks()">'
-      +'<input style="width:80px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+c.maxMark+'" placeholder="Max" step="0.5" onchange="state.rubric.criteria['+ci+'].maxMark=parseFloat(this.value)||0;updateTotalMarks()">'
+      +'<input style="width:80px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+c.maxMark+'" step="0.5" placeholder="Max" onchange="state.rubric.criteria['+ci+'].maxMark=parseFloat(this.value)||0;updateTotalMarks()">'
       +'<button class="btn-icon" onclick="removeCriterion(\''+c.id+'\')" style="color:var(--danger)">&#10005;</button></div>';
-    c.levels.forEach(function(l,li){
-      html+='<div style="display:flex;gap:.5rem;align-items:start;margin-bottom:.4rem">'
+    c.levels.forEach(function(l,li) {
+      html += '<div style="display:flex;gap:.5rem;align-items:start;margin-bottom:.4rem">'
         +'<input style="width:140px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.label+'" placeholder="Level" onchange="state.rubric.criteria['+ci+'].levels['+li+'].label=this.value">'
         +'<input style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="text" value="'+l.desc+'" placeholder="Descriptor" onchange="state.rubric.criteria['+ci+'].levels['+li+'].desc=this.value">'
-        +'<input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" placeholder="Marks" step="0.5" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseFloat(this.value)||0">'
+        +'<input style="width:65px;border:1px solid var(--border);border-radius:var(--radius);padding:5px 8px" type="number" value="'+l.marks+'" step="0.5" placeholder="Marks" onchange="state.rubric.criteria['+ci+'].levels['+li+'].marks=parseFloat(this.value)||0">'
         +'<button class="btn-icon" onclick="removeLevel(\''+c.id+'\','+li+')" style="color:var(--danger)">&#10005;</button></div>';
     });
-    html+='<button class="btn btn-sm" style="margin-top:.5rem" onclick="addLevel(\''+c.id+'\')">+ Add level</button></div>';
+    html += '<button class="btn btn-sm" style="margin-top:.5rem" onclick="addLevel(\''+c.id+'\')">+ Add level</button></div>';
     return html;
   }).join('');
   updateTotalMarks();
 }
-function addCriterion(){state.rubric.criteria.push({id:'c'+Date.now(),name:'New Criterion',maxMark:25,levels:[{label:'High Distinction',desc:'',marks:25},{label:'Distinction',desc:'',marks:20},{label:'Credit',desc:'',marks:15},{label:'Pass',desc:'',marks:10},{label:'Fail',desc:'',marks:0}]});renderRubricBuilder();}
-function removeCriterion(id){state.rubric.criteria=state.rubric.criteria.filter(function(c){return c.id!==id;});renderRubricBuilder();}
-function addLevel(cid){var c=state.rubric.criteria.find(function(c){return c.id===cid;});if(c){c.levels.push({label:'New Level',desc:'',marks:0});renderRubricBuilder();}}
-function removeLevel(cid,li){var c=state.rubric.criteria.find(function(c){return c.id===cid;});if(c){c.levels.splice(li,1);renderRubricBuilder();}}
-function updateTotalMarks(){var el=document.getElementById('total-marks-display');if(el)el.textContent=getTotalMaxMarks();}
 
-// ─── RUBRIC CSV IMPORT / EXPORT ───────────────────────────────────────────────
-function exportRubricCsv(){
-  var rows=['criterion_name,max_mark,level_label,level_desc,level_marks'];
-  state.rubric.criteria.forEach(function(c){
-    c.levels.forEach(function(l){
+function addCriterion() {
+  state.rubric.criteria.push({id:'c'+Date.now(),name:'New Criterion',maxMark:25,levels:[
+    {label:'High Distinction',desc:'',marks:25},{label:'Distinction',desc:'',marks:20},
+    {label:'Credit',desc:'',marks:15},{label:'Pass',desc:'',marks:10},{label:'Fail',desc:'',marks:0}]});
+  renderRubricBuilder();
+}
+
+function removeCriterion(id) { state.rubric.criteria=state.rubric.criteria.filter(function(c){return c.id!==id;}); renderRubricBuilder(); }
+function addLevel(cid) { var c=state.rubric.criteria.find(function(c){return c.id===cid;}); if(c){c.levels.push({label:'New Level',desc:'',marks:0});renderRubricBuilder();} }
+function removeLevel(cid,li) { var c=state.rubric.criteria.find(function(c){return c.id===cid;}); if(c){c.levels.splice(li,1);renderRubricBuilder();} }
+function updateTotalMarks() { var el=document.getElementById('total-marks-display'); if(el) el.textContent=getTotalMaxMarks(); }
+
+// ─── RUBRIC CSV ───────────────────────────────────────────────────────────────
+function exportRubricCsv() {
+  var rows = ['criterion_name,max_mark,level_label,level_desc,level_marks'];
+  state.rubric.criteria.forEach(function(c) {
+    c.levels.forEach(function(l) {
       rows.push('"'+c.name.replace(/"/g,'""')+'",'+c.maxMark+',"'+l.label.replace(/"/g,'""')+'","'+l.desc.replace(/"/g,'""')+'",'+l.marks);
     });
   });
-  var blob=new Blob([rows.join('\n')],{type:'text/csv'});
-  var url=URL.createObjectURL(blob),a=document.createElement('a');
-  a.href=url;a.download='rubric.csv';a.click();URL.revokeObjectURL(url);
+  var blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  var url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = 'rubric.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
-function importRubricCsv(input){
-  if(!input.files[0])return;
-  var reader=new FileReader();
-  reader.onload=function(e){
+function importRubricCsv(input) {
+  if (!input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
     try {
-      var lines=e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
-      if(!lines.length){alert('CSV is empty.');return;}
-      var firstLower=lines[0].toLowerCase();
-      if(firstLower.includes('criterion_name')||firstLower.includes('level_label'))lines.shift();
-      if(!lines.length){alert('No data rows found.');return;}
-      function parseCsvRow(row){
-        var fields=[],cur='',inQuote=false;
-        for(var i=0;i<row.length;i++){
-          var ch=row[i];
-          if(ch==='"'){if(inQuote&&row[i+1]==='"'){cur+='"';i++;}else inQuote=!inQuote;}
-          else if(ch===','&&!inQuote){fields.push(cur.trim());cur='';}
+      var lines = e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      if (!lines.length) { alert('CSV is empty.'); return; }
+      var firstLower = lines[0].toLowerCase();
+      if (firstLower.includes('criterion_name') || firstLower.includes('level_label')) lines.shift();
+      if (!lines.length) { alert('No data rows found.'); return; }
+      function parseCsvRow(row) {
+        var fields=[], cur='', inQuote=false;
+        for (var i=0; i<row.length; i++) {
+          var ch = row[i];
+          if (ch==='"') { if(inQuote&&row[i+1]==='"'){cur+='"';i++;}else inQuote=!inQuote; }
+          else if (ch===','&&!inQuote) { fields.push(cur.trim()); cur=''; }
           else cur+=ch;
         }
         fields.push(cur.trim());
         return fields;
       }
-      var criteriaMap={},criteriaOrder=[];
-      lines.forEach(function(line){
-        var f=parseCsvRow(line);if(f.length<5)return;
-        var cName=f[0],maxMark=parseInt(f[1])||0,lLabel=f[2],lDesc=f[3],lMarks=parseFloat(f[4])||0;
-        if(!cName)return;
-        if(!criteriaMap[cName]){criteriaMap[cName]={id:'c'+Date.now()+Math.random().toString(36).slice(2),name:cName,maxMark:maxMark,levels:[]};criteriaOrder.push(cName);}
-        criteriaMap[cName].levels.push({label:lLabel,desc:lDesc,marks:lMarks});
+      var criteriaMap={}, criteriaOrder=[];
+      lines.forEach(function(line) {
+        var f = parseCsvRow(line); if (f.length < 5) return;
+        var cName=f[0], maxMark=parseFloat(f[1])||0, lLabel=f[2], lDesc=f[3], lMarks=parseFloat(f[4])||0;
+        if (!cName) return;
+        if (!criteriaMap[cName]) {
+          criteriaMap[cName] = {id:'c'+Date.now()+Math.random().toString(36).slice(2), name:cName, maxMark:maxMark, levels:[]};
+          criteriaOrder.push(cName);
+        }
+        criteriaMap[cName].levels.push({label:lLabel, desc:lDesc, marks:lMarks});
       });
-      if(!criteriaOrder.length){alert('No valid rows found. Check the CSV format.');return;}
-      if(!confirm('Import '+criteriaOrder.length+' criteria? This will replace the current rubric.'))return;
-      state.rubric.criteria=criteriaOrder.map(function(n){return criteriaMap[n];});
+      if (!criteriaOrder.length) { alert('No valid rows found. Check the CSV format.'); return; }
+      if (!confirm('Import '+criteriaOrder.length+' criteria? This will replace the current rubric.')) return;
+      state.rubric.criteria = criteriaOrder.map(function(n){return criteriaMap[n];});
       renderRubricBuilder();
-      alert('Rubric imported — '+criteriaOrder.length+' criteria loaded.\n\nClick "Save rubric" to save to OneDrive.');
-    } catch(err){alert('Import failed: '+err.message);}
-    input.value='';
+      alert('Rubric imported - '+criteriaOrder.length+' criteria loaded.\n\nClick "Save rubric" to save to OneDrive.');
+    } catch(err) { alert('Import failed: '+err.message); }
+    input.value = '';
   };
   reader.readAsText(input.files[0]);
 }
 
-// ─── MARKING ──────────────────────────────────────────────────────────────────
-function selectLevel(criterionId,label,marks,maxMark,btn){
+// ─── STUDENT CSV IMPORT ───────────────────────────────────────────────────────
+function importStudentsCsv(input) {
+  if (!input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var lines = e.target.result.split('\n').map(function(l){return l.trim();}).filter(Boolean);
+      // Skip header row (row 1), data starts row 2
+      if (lines.length > 0) lines.shift();
+      if (!lines.length) { alert('No student data found in CSV.'); return; }
+
+      function parseCsvRow(row) {
+        var fields=[], cur='', inQuote=false;
+        for (var i=0; i<row.length; i++) {
+          var ch=row[i];
+          if (ch==='"'){if(inQuote&&row[i+1]==='"'){cur+='"';i++;}else inQuote=!inQuote;}
+          else if (ch===','&&!inQuote){fields.push(cur.trim());cur='';}
+          else cur+=ch;
+        }
+        fields.push(cur.trim());
+        return fields;
+      }
+
+      var added=0, skipped=0;
+      lines.forEach(function(line) {
+        var f = parseCsvRow(line);
+        // Moodle format: col 0 = first name, col 1 = last name, col 5 = student ID
+        if (f.length < 6) return;
+        var firstName = f[0], lastName = f[1], studentId = f[5];
+        if (!firstName || !lastName || !studentId) return;
+        var name = firstName+' '+lastName;
+        studentId = studentId.replace(/\D/g,''); // strip non-numeric chars
+        if (!studentId) return;
+        // Skip if already exists
+        var exists = state.students.find(function(s){return s.id===studentId;});
+        if (exists) { skipped++; return; }
+        state.students.push({id:studentId, name:name, hasPdf:false, pdfItemId:null, manual:true});
+        added++;
+      });
+
+      state.students.sort(function(a,b){return a.name.localeCompare(b.name);});
+      renderStudentList(); updateDashboard();
+      alert('Imported '+added+' students.'+(skipped?' '+skipped+' already existed and were skipped.':''));
+    } catch(err) { alert('Import failed: '+err.message); }
+    input.value = '';
+  };
+  reader.readAsText(input.files[0]);
+}
+
+// ─── SECOND MARK OVERRIDE ─────────────────────────────────────────────────────
+function enableSecondMark() {
+  var s = state.selectedStudent; if (!s) return;
+  var g = state.grades[s.id]; if (!g || g.mark1 === undefined) return;
+  if (!confirm('Mark this submission as second marker?\n\nYou will mark independently and your score will be averaged with the first mark.')) return;
+  // Temporarily override the marker name check by flagging this session
+  s._forceSecondMark = true;
+  document.getElementById('second-mark-btn').style.display = 'none';
+  renderMarkingPanel();
+}
+function selectLevel(criterionId, label, marks, maxMark, btn) {
   btn.closest('.level-buttons').querySelectorAll('.level-btn').forEach(function(b){b.classList.remove('selected');});
   btn.classList.add('selected');
   document.querySelectorAll('[id^="desc-'+criterionId+'-"]').forEach(function(d){d.style.display='none';});
-  var descEl=document.getElementById('desc-'+criterionId+'-'+label.replace(/\W+/g,'_'));
-  if(descEl&&descEl.textContent.trim())descEl.style.display='block';
-  var inp=document.getElementById('cs-input-'+criterionId);if(inp)inp.value=marks;
+  var descEl = document.getElementById('desc-'+criterionId+'-'+label.replace(/\W+/g,'_'));
+  if (descEl && descEl.textContent.trim()) descEl.style.display = 'block';
+  var inp = document.getElementById('cs-input-'+criterionId); if (inp) inp.value = marks;
   updateTotalScoreDisplay();
 }
-function updateTotalScoreDisplay(){
-  var total=0;
-  state.rubric.criteria.forEach(function(c){
-    var inp=document.getElementById('cs-input-'+c.id);if(!inp||inp.value===''||inp.value===null)return;
-    var val=parseFloat(inp.value);if(isNaN(val))return;
-    val=Math.max(0,Math.min(val,c.maxMark));total+=val;
-    if(val!==parseFloat(inp.value))inp.value=val;
+
+function updateTotalScoreDisplay() {
+  var total = 0;
+  state.rubric.criteria.forEach(function(c) {
+    var inp = document.getElementById('cs-input-'+c.id);
+    if (!inp || inp.value === '' || inp.value === null) return;
+    var val = parseFloat(inp.value); if (isNaN(val)) return;
+    val = Math.max(0, Math.min(val, c.maxMark));
+    total += val;
+    if (val !== parseFloat(inp.value)) inp.value = val;
   });
-  total=Math.round(total*100)/100;
-  var el=document.getElementById('total-score-display');if(el)el.textContent=total+' / '+getTotalMaxMarks();
+  total = Math.round(total*100)/100;
+  var el = document.getElementById('total-score-display');
+  if (el) el.textContent = total+' / '+getTotalMaxMarks();
 }
-function submitMarks(){
-  var s=state.selectedStudent;if(!s)return;
-  var g=state.grades[s.id]||{},isSecond=g.mark1!==undefined&&g.mark1Marker!==state.user.name;
-  var criteria={},total=0,complete=true;
-  state.rubric.criteria.forEach(function(c){
-    var sel=document.querySelector('#cm-'+c.id+' .level-btn.selected');
-    var inp=document.getElementById('cs-input-'+c.id);
-    var marks=inp&&inp.value!==''?Math.max(0,Math.min(parseFloat(inp.value)||0,c.maxMark)):null;
-    if(!sel||marks===null){complete=false;return;}
-    var descEl=document.getElementById('desc-'+c.id+'-'+sel.textContent.trim().replace(/\W+/g,'_'));
-    criteria[c.id]={label:sel.textContent.trim(),marks:marks,maxMark:c.maxMark,comment:document.getElementById('cc-'+c.id).value,desc:descEl?descEl.textContent.trim():''};
-    total+=marks;
+
+function submitMarks() {
+  var s = state.selectedStudent; if (!s) return;
+  var g = state.grades[s.id]||{};
+  var isSecond = (g.mark1 !== undefined && g.mark1Marker !== state.user.name) || s._forceSecondMark;
+  var criteria={}, total=0, complete=true;
+  state.rubric.criteria.forEach(function(c) {
+    var sel = document.querySelector('#cm-'+c.id+' .level-btn.selected');
+    var inp = document.getElementById('cs-input-'+c.id);
+    var marks = inp&&inp.value!=='' ? Math.max(0,Math.min(parseFloat(inp.value)||0,c.maxMark)) : null;
+    if (!sel || marks===null) { complete=false; return; }
+    var descEl = document.getElementById('desc-'+c.id+'-'+sel.textContent.trim().replace(/\W+/g,'_'));
+    criteria[c.id] = {label:sel.textContent.trim(), marks:marks, maxMark:c.maxMark, comment:document.getElementById('cc-'+c.id).value, desc:descEl?descEl.textContent.trim():''};
+    total += marks;
   });
-  if(!complete){alert('Please select a level and mark for every criterion.');return;}
-  var overallComment=document.getElementById('overall-comments').value;
-  if(!isSecond){
-    g.mark1=total;g.mark1Marker=state.user.name;g.criteria=criteria;g.overallComment=overallComment;g.mark1Date=new Date().toISOString();
-    if(!requiresSecondMark(g))g.finalGrade=total;
+  if (!complete) { alert('Please select a level and mark for every criterion.'); return; }
+  var overallComment = document.getElementById('overall-comments').value;
+  if (!isSecond) {
+    g.mark1=total; g.mark1Marker=state.user.name; g.criteria=criteria;
+    g.overallComment=overallComment; g.mark1Date=new Date().toISOString();
+    if (!requiresSecondMark(g)) g.finalGrade = total;
   } else {
-    g.mark2=total;g.mark2Marker=state.user.name;g.criteria2=criteria;g.overallComment2=overallComment;g.mark2Date=new Date().toISOString();
-    var pct=getTotalMaxMarks()>0?Math.abs(g.mark1-g.mark2)/getTotalMaxMarks()*100:0;
-    if(pct<=state.config.threshold)g.finalGrade=Math.round((g.mark1+g.mark2)/2);else g.flagged=true;
+    g.mark2=total; g.mark2Marker=state.user.name; g.criteria2=criteria;
+    g.overallComment2=overallComment; g.mark2Date=new Date().toISOString();
+    var pct = getTotalMaxMarks()>0 ? Math.abs(g.mark1-g.mark2)/getTotalMaxMarks()*100 : 0;
+    if (pct <= state.config.threshold) g.finalGrade = Math.round((g.mark1+g.mark2)*100/2)/100;
+    else g.flagged = true;
   }
-  state.grades[s.id]=g;saveGrades();saveAnnotations();
-  renderStudentList(document.getElementById('search-box').value);updateDashboard();
-  alert('Marks submitted for '+s.name+'.'+(isSecond&&g.flagged?'\n⚠ Flagged for moderation.':''));
+  state.grades[s.id] = g;
+  s._forceSecondMark = false;
+  saveGrades(); saveAnnotations();
+  renderStudentList(document.getElementById('search-box').value);
+  updateDashboard();
+  alert('Marks submitted for '+s.name+'.'+(isSecond&&g.flagged?'\nFlagged for moderation.':''));
   nextStudent();
 }
 
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
-function updateDashboard(){
-  var max=getTotalMaxMarks();
-  var unmarked=state.students.filter(function(s){return !state.grades[s.id];}).length;
-  var awaiting2=state.students.filter(function(s){var g=state.grades[s.id];return g&&g.mark1!==undefined&&g.mark2===undefined&&!g.flagged&&requiresSecondMark(g);}).length;
-  var flagged=state.students.filter(function(s){return state.grades[s.id]&&state.grades[s.id].flagged;}).length;
-  var complete=state.students.filter(function(s){var g=state.grades[s.id];return g&&(g.finalGrade!==undefined||g.moderatorGrade!==undefined);}).length;
-  document.getElementById('stats-row').innerHTML=[['Total',state.students.length,'var(--primary)'],['Unmarked',unmarked,'var(--muted)'],['Awaiting 2nd',awaiting2,'var(--warning)'],['Flagged',flagged,'var(--danger)'],['Complete',complete,'var(--success)']].map(function(x){return '<div class="stat-card"><div class="stat-val" style="color:'+x[2]+'">'+x[1]+'</div><div class="stat-lbl">'+x[0]+'</div></div>';}).join('');
-  document.getElementById('overview-body').innerHTML=state.students.map(function(s){
-    var g=state.grades[s.id],st=getStatus(g);
-    var m1=g&&g.mark1!==undefined?g.mark1+'/'+max:'—',m2=g&&g.mark2!==undefined?g.mark2+'/'+max:'—';
+function updateDashboard() {
+  var max = getTotalMaxMarks();
+  var unmarked  = state.students.filter(function(s){return !state.grades[s.id];}).length;
+  var awaiting2 = state.students.filter(function(s){var g=state.grades[s.id];return g&&g.mark1!==undefined&&g.mark2===undefined&&!g.flagged&&requiresSecondMark(g);}).length;
+  var flagged   = state.students.filter(function(s){return state.grades[s.id]&&state.grades[s.id].flagged;}).length;
+  var complete  = state.students.filter(function(s){var g=state.grades[s.id];return g&&(g.finalGrade!==undefined||g.moderatorGrade!==undefined);}).length;
+  document.getElementById('stats-row').innerHTML = [
+    ['Total',state.students.length,'var(--primary)'],['Unmarked',unmarked,'var(--muted)'],
+    ['Awaiting 2nd',awaiting2,'var(--warning)'],['Flagged',flagged,'var(--danger)'],['Complete',complete,'var(--success)']
+  ].map(function(x){return '<div class="stat-card"><div class="stat-val" style="color:'+x[2]+'">'+x[1]+'</div><div class="stat-lbl">'+x[0]+'</div></div>';}).join('');
+  document.getElementById('overview-body').innerHTML = state.students.map(function(s) {
+    var g=state.grades[s.id], st=getStatus(g);
+    var m1=g&&g.mark1!==undefined?g.mark1+'/'+max:'--';
+    var m2=g&&g.mark2!==undefined?g.mark2+'/'+max:'--';
     var fin=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:null):null;
-    return '<tr><td>'+s.name+'</td><td style="color:var(--muted)">'+s.id+'</td><td style="font-weight:600">'+m1+'</td><td style="font-weight:600">'+m2+'</td><td style="font-weight:600">'+(fin!==null?fin+'/'+max:(g&&g.flagged?'&#9873;':'—'))+'</td><td><span class="badge badge-'+st.cls+'">'+st.label+'</span></td><td><button class="btn btn-sm" onclick="selectStudent(\''+s.id+'\')">Open</button></td></tr>';
+    return '<tr><td>'+s.name+'</td><td style="color:var(--muted)">'+s.id+'</td>'
+      +'<td style="font-weight:600">'+m1+'</td><td style="font-weight:600">'+m2+'</td>'
+      +'<td style="font-weight:600">'+(fin!==null?fin+'/'+max:(g&&g.flagged?'!':'--'))+'</td>'
+      +'<td><span class="badge badge-'+st.cls+'">'+st.label+'</span></td>'
+      +'<td><button class="btn btn-sm" onclick="selectStudent(\''+s.id+'\')">Open</button></td></tr>';
   }).join('');
-  renderModerationList();renderExportPreview();
+  renderModerationList(); renderExportPreview();
 }
 
 // ─── MODERATION ───────────────────────────────────────────────────────────────
-function renderModerationList(){
-  var el=document.getElementById('moderation-list');if(!el)return;
-  var flagged=state.students.filter(function(s){return state.grades[s.id]&&state.grades[s.id].flagged&&state.grades[s.id].moderatorGrade===undefined;});
-  if(!flagged.length){el.innerHTML='<p class="text-muted">No submissions flagged. &#127881;</p>';return;}
-  var max=getTotalMaxMarks();
-  el.innerHTML=flagged.map(function(s){
-    var g=state.grades[s.id],diff=Math.abs(g.mark1-g.mark2),pct=max>0?(diff/max*100).toFixed(1):0;
-    return '<div class="card"><div class="flex items-center justify-between"><div><strong>'+s.name+'</strong> <span class="text-muted">'+s.id+'</span>'
+function renderModerationList() {
+  var el = document.getElementById('moderation-list'); if (!el) return;
+  var flagged = state.students.filter(function(s){return state.grades[s.id]&&state.grades[s.id].flagged&&state.grades[s.id].moderatorGrade===undefined;});
+  if (!flagged.length) { el.innerHTML='<p class="text-muted">No submissions flagged.</p>'; return; }
+  var max = getTotalMaxMarks();
+  el.innerHTML = flagged.map(function(s) {
+    var g=state.grades[s.id], diff=Math.abs(g.mark1-g.mark2), pct=max>0?(diff/max*100).toFixed(1):0;
+    return '<div class="card"><div class="flex items-center justify-between"><div>'
+      +'<strong>'+s.name+'</strong> <span class="text-muted">'+s.id+'</span>'
       +'<p class="text-muted mt-sm">1st: <strong>'+g.mark1+'/'+max+'</strong> by '+g.mark1Marker+' | 2nd: <strong>'+g.mark2+'/'+max+'</strong> by '+g.mark2Marker+'</p>'
-      +'<p style="color:var(--danger);font-size:13px;margin-top:4px">Difference: '+diff+' marks ('+pct+'%)</p></div>'
-      +'<button class="btn btn-primary" onclick="openModModal(\''+s.id+'\')">Review</button></div></div>';
+      +'<p style="color:var(--danger);font-size:13px;margin-top:4px">Difference: '+diff+' marks ('+pct+'%)</p>'
+      +'</div><button class="btn btn-primary" onclick="openModModal(\''+s.id+'\')">Review</button></div></div>';
   }).join('');
 }
-var modSid=null;
-function openModModal(sid){
-  modSid=sid;var s=state.students.find(function(s){return s.id===sid;}),g=state.grades[sid],max=getTotalMaxMarks(),avg=Math.round((g.mark1+g.mark2)/2);
-  document.getElementById('mod-modal-body').innerHTML='<p style="margin-bottom:1rem"><strong>'+s.name+'</strong> ('+s.id+')</p>'
+
+var modSid = null;
+function openModModal(sid) {
+  modSid = sid;
+  var s=state.students.find(function(s){return s.id===sid;}), g=state.grades[sid], max=getTotalMaxMarks();
+  var avg = Math.round((g.mark1+g.mark2)*100/2)/100;
+  document.getElementById('mod-modal-body').innerHTML =
+    '<p style="margin-bottom:1rem"><strong>'+s.name+'</strong> ('+s.id+')</p>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">'
-    +'<div class="stat-card"><div class="stat-val">'+g.mark1+'/'+max+'</div><div class="stat-lbl">1st — '+g.mark1Marker+'</div></div>'
-    +'<div class="stat-card"><div class="stat-val">'+g.mark2+'/'+max+'</div><div class="stat-lbl">2nd — '+g.mark2Marker+'</div></div></div>'
+    +'<div class="stat-card"><div class="stat-val">'+g.mark1+'/'+max+'</div><div class="stat-lbl">1st - '+g.mark1Marker+'</div></div>'
+    +'<div class="stat-card"><div class="stat-val">'+g.mark2+'/'+max+'</div><div class="stat-lbl">2nd - '+g.mark2Marker+'</div></div></div>'
     +'<div class="form-group"><label for="mod-grade-input">Final grade (suggested: '+avg+'/'+max+')</label>'
-    +'<input type="number" id="mod-grade-input" value="'+avg+'" min="0" max="'+max+'" style="width:100%"></div>'
+    +'<input type="number" id="mod-grade-input" value="'+avg+'" min="0" max="'+max+'" step="0.5" style="width:100%"></div>'
     +'<div class="form-group"><label for="mod-notes-input">Moderator notes</label>'
-    +'<textarea id="mod-notes-input" placeholder="Reason for final grade decision…"></textarea></div>';
+    +'<textarea id="mod-notes-input" placeholder="Reason for final grade decision..."></textarea></div>';
   document.getElementById('mod-modal').classList.remove('hidden');
 }
-function closeModerationModal(){document.getElementById('mod-modal').classList.add('hidden');modSid=null;}
-function saveModerationOverride(){
-  if(!modSid)return;
-  state.grades[modSid].moderatorGrade=parseInt(document.getElementById('mod-grade-input').value);
-  state.grades[modSid].moderatorNotes=document.getElementById('mod-notes-input').value;
-  state.grades[modSid].moderatorName=state.user.name;state.grades[modSid].flagged=false;
-  saveGrades();closeModerationModal();updateDashboard();
+
+function closeModerationModal() { document.getElementById('mod-modal').classList.add('hidden'); modSid=null; }
+
+function saveModerationOverride() {
+  if (!modSid) return;
+  state.grades[modSid].moderatorGrade = parseFloat(document.getElementById('mod-grade-input').value);
+  state.grades[modSid].moderatorNotes = document.getElementById('mod-notes-input').value;
+  state.grades[modSid].moderatorName  = state.user.name;
+  state.grades[modSid].flagged = false;
+  saveGrades(); closeModerationModal(); updateDashboard();
 }
 
 // ─── EXPORT ───────────────────────────────────────────────────────────────────
-function safeName(name){return name.replace(/[\/\\:*?"<>|]/g,'_').replace(/\.+/g,'_').trim();}
-function renderExportPreview(){
-  var el=document.getElementById('export-preview'),cl=document.getElementById('export-checklist');if(!el||!cl)return;
-  var max=getTotalMaxMarks();
-  cl.innerHTML=[['Rubric defined',state.rubric.criteria.length>0],['Students loaded',state.students.length>0],['At least one marked submission',Object.keys(state.grades).length>0]].map(function(x){return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="color:'+(x[1]?'var(--success)':'var(--danger)')+';">'+(x[1]?'&#10003;':'&#10007;')+'</span><span class="text-muted">'+x[0]+'</span></div>';}).join('');
-  el.innerHTML='<table class="overview-table"><thead><tr><th>Student</th><th>ID</th><th>Final grade</th><th>Status</th></tr></thead><tbody>'+state.students.map(function(s){var g=state.grades[s.id];var fin=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:null):null;return '<tr><td>'+s.name+'</td><td>'+s.id+'</td><td>'+(fin!==null?fin+'/'+max:'—')+'</td><td>'+getStatus(g).label+'</td></tr>';}).join('')+'</tbody></table>';
+function safeName(name) { return name.replace(/[\/\\:*?"<>|]/g,'_').replace(/\.+/g,'_').trim(); }
+
+function renderExportPreview() {
+  var el=document.getElementById('export-preview'), cl=document.getElementById('export-checklist');
+  if (!el||!cl) return;
+  var max = getTotalMaxMarks();
+  cl.innerHTML = [['Rubric defined',state.rubric.criteria.length>0],['Students loaded',state.students.length>0],['At least one marked submission',Object.keys(state.grades).length>0]].map(function(x){
+    return '<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem"><span style="color:'+(x[1]?'var(--success)':'var(--danger)')+';">'+(x[1]?'✓':'✗')+'</span><span class="text-muted">'+x[0]+'</span></div>';
+  }).join('');
+  el.innerHTML = '<table class="overview-table"><thead><tr><th>Student</th><th>ID</th><th>Final grade</th><th>Status</th></tr></thead><tbody>'
+    +state.students.map(function(s){
+      var g=state.grades[s.id];
+      var fin=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:null):null;
+      return '<tr><td>'+s.name+'</td><td>'+s.id+'</td><td>'+(fin!==null?fin+'/'+max:'--')+'</td><td>'+getStatus(g).label+'</td></tr>';
+    }).join('')+'</tbody></table>';
 }
-function exportMoodle(){
-  var filter=document.getElementById('export-filter').value,max=getTotalMaxMarks();
-  var toExport=state.students.filter(function(s){var g=state.grades[s.id];if(filter==='complete')return g&&(g.finalGrade!==undefined||g.moderatorGrade!==undefined);if(filter==='first')return g&&g.mark1!==undefined;return true;});
-  if(!toExport.length){alert('No submissions match the selected filter.');return;}
-  var zip=new JSZip();
-  var csv='Identifier,Full name,Email address,Status,Grade,Maximum Grade,Grade can be changed,Last modified (submission),Last modified (grade),Feedback comments\n';
-  toExport.forEach(function(s){
-    var g=state.grades[s.id],grade=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:''):'';
+
+function exportMoodle() {
+  var filter=document.getElementById('export-filter').value, max=getTotalMaxMarks();
+  var toExport=state.students.filter(function(s){
+    var g=state.grades[s.id];
+    if(filter==='complete') return g&&(g.finalGrade!==undefined||g.moderatorGrade!==undefined);
+    if(filter==='first')    return g&&g.mark1!==undefined;
+    return true;
+  });
+  if (!toExport.length) { alert('No submissions match the selected filter.'); return; }
+  var zip = new JSZip();
+  var csv = 'Identifier,Full name,Email address,Status,Grade,Maximum Grade,Grade can be changed,Last modified (submission),Last modified (grade),Feedback comments\n';
+  toExport.forEach(function(s) {
+    var g=state.grades[s.id], grade=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:''):'';
     var comment=(g&&g.overallComment?g.overallComment:'')+(g&&g.overallComment2?'\n\n[Second marker]: '+g.overallComment2:'');
     csv+='"Participant '+s.id+'","'+s.name+'","'+s.id+'@uni.edu.au","Submitted","'+grade+'","'+max+'","Yes","","","'+comment.replace(/"/g,'""')+'"\n';
   });
-  zip.file('grading.csv',csv);
-  var fb=zip.folder('feedback_files');
-  toExport.forEach(function(s){
-    fb.folder(safeName(s.name)+'_'+s.id+'_assignfeedback_file_').file('rubric_feedback.html',buildFeedbackHTML(s,state.grades[s.id],max));
+  zip.file('grading.csv', csv);
+  var fb = zip.folder('feedback_files');
+  toExport.forEach(function(s) {
+    fb.folder(safeName(s.name)+'_'+s.id+'_assignfeedback_file_').file('rubric_feedback.html', buildFeedbackHTML(s,state.grades[s.id],max));
   });
-  zip.generateAsync({type:'blob'}).then(function(blob){var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='moodle_export_'+Date.now()+'.zip';a.click();URL.revokeObjectURL(url);});
+  zip.generateAsync({type:'blob'}).then(function(blob){
+    var url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download='moodle_export_'+Date.now()+'.zip'; a.click(); URL.revokeObjectURL(url);
+  });
 }
-function buildFeedbackHTML(student,g,max){
+
+function buildFeedbackHTML(student, g, max) {
   var grade=g?(g.moderatorGrade!==undefined?g.moderatorGrade:g.finalGrade!==undefined?g.finalGrade:g.mark1!==undefined?g.mark1:'?'):'?';
-  var pct=max>0?Math.round(grade/max*100):0,criteria=g&&g.criteria?g.criteria:{};
-  var rows=state.rubric.criteria.map(function(c){var e=criteria[c.id];return '<div class="criterion"><div class="c-header"><span class="c-name">'+c.name+'</span><span class="c-score">'+(e?e.marks:'—')+' / '+c.maxMark+'</span></div>'+(e?'<div class="level-badge">'+e.label+'</div>'+(e.desc?'<div class="level-desc">'+e.desc+'</div>':'')+(e.comment?'<div class="comment">'+e.comment+'</div>':''):'<em>Not marked</em>')+'</div>';}).join('');
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Feedback — '+student.name+'</title><style>body{font-family:Arial,sans-serif;max-width:780px;margin:40px auto;color:#1a1a1a;line-height:1.6;padding:0 1rem}h1{font-size:20px;color:#4f46e5}h2{font-size:15px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-top:1.5rem}.criterion{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:1rem;margin-bottom:1rem}.c-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem}.c-name{font-weight:600}.c-score{font-weight:700;color:#4f46e5}.level-badge{display:inline-block;background:#4f46e5;color:#fff;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:500;margin-bottom:.3rem}.level-desc{font-size:13px;color:#4b5563;font-style:italic;margin-bottom:.4rem}.comment{font-size:14px;color:#374151;border-left:3px solid #4f46e5;padding-left:.75rem;margin-top:.4rem}.total{background:#4f46e5;color:#fff;padding:1rem;border-radius:8px;text-align:center;font-size:22px;font-weight:700;margin-top:1.5rem}.mod-note{margin-top:1rem;font-size:13px;color:#6b7280;font-style:italic}</style></head><body>'
-    +'<h1>Assessment Feedback</h1><p><strong>Student:</strong> '+student.name+' ('+student.id+')</p><p><strong>Assessment:</strong> '+state.config.unitName+'</p>'
+  var pct=max>0?Math.round(grade/max*100):0;
+  var criteria1=g&&g.criteria?g.criteria:{};
+  var criteria2=g&&g.criteria2?g.criteria2:{};
+  var isDoubleMarked = g && g.mark2 !== undefined;
+  var isModerator = g && g.moderatorGrade !== undefined;
+
+  var rows = state.rubric.criteria.map(function(c) {
+    var e1=criteria1[c.id], e2=criteria2[c.id];
+    var avgMarks = (e1 && e2) ? Math.round((e1.marks+e2.marks)*100/2)/100 : (e1?e1.marks:null);
+    var html = '<div class="criterion">'
+      +'<div class="c-header"><span class="c-name">'+c.name+'</span>'
+      +'<span class="c-score">'+(avgMarks!==null?avgMarks:'--')+' / '+c.maxMark+'</span></div>';
+    if (isDoubleMarked && e1 && e2) {
+      // Show averaged level — use whichever level matches the higher/averaged mark
+      html += '<div class="level-row">'
+        +'<div style="flex:1"><div class="level-badge" style="background:#4f46e5">'+e1.label+'</div>'
+        +(e1.desc?'<div class="level-desc">'+e1.desc+'</div>':'')
+        +(e1.comment?'<div class="comment"><span class="marker-tag">Marker 1:</span> '+e1.comment+'</div>':'')
+        +'</div>'
+        +'<div style="flex:1;margin-left:1rem"><div class="level-badge" style="background:#7c3aed">'+e2.label+'</div>'
+        +(e2.desc&&e2.desc!==e1.desc?'<div class="level-desc">'+e2.desc+'</div>':'')
+        +(e2.comment?'<div class="comment"><span class="marker-tag">Marker 2:</span> '+e2.comment+'</div>':'')
+        +'</div></div>';
+    } else if (e1) {
+      html += '<div class="level-badge">'+e1.label+'</div>'
+        +(e1.desc?'<div class="level-desc">'+e1.desc+'</div>':'')
+        +(e1.comment?'<div class="comment">'+e1.comment+'</div>':'');
+    } else {
+      html += '<em>Not marked</em>';
+    }
+    html += '</div>';
+    return html;
+  }).join('');
+
+  var markingSummary = '';
+  if (isDoubleMarked) {
+    markingSummary = '<div class="double-mark-banner">'
+      +'<strong>Double marked assessment</strong> — final grade is the average of two independent marks.'
+      +'<div style="display:flex;gap:2rem;margin-top:.4rem;font-size:13px">'
+      +'<span>Marker 1: <strong>'+g.mark1+'/'+max+'</strong></span>'
+      +'<span>Marker 2: <strong>'+g.mark2+'/'+max+'</strong></span>'
+      +(isModerator?'<span>Moderated: <strong>'+g.moderatorGrade+'/'+max+'</strong></span>':'')
+      +'</div></div>';
+  }
+
+  var overallSection = '';
+  if (g&&g.overallComment) overallSection += '<h2>Overall feedback — Marker 1</h2><p>'+g.overallComment+'</p>';
+  if (g&&g.overallComment2) overallSection += '<h2>Overall feedback — Marker 2</h2><p>'+g.overallComment2+'</p>';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Feedback - '+student.name+'</title>'
+    +'<style>body{font-family:Arial,sans-serif;max-width:780px;margin:40px auto;color:#1a1a1a;line-height:1.6;padding:0 1rem}'
+    +'h1{font-size:20px;color:#4f46e5}h2{font-size:15px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;margin-top:1.5rem}'
+    +'.criterion{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:1rem;margin-bottom:1rem}'
+    +'.c-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}'
+    +'.c-name{font-weight:600}.c-score{font-weight:700;color:#4f46e5}'
+    +'.level-row{display:flex;gap:.5rem}'
+    +'.level-badge{display:inline-block;color:#fff;padding:2px 10px;border-radius:20px;font-size:13px;font-weight:500;margin-bottom:.3rem;background:#4f46e5}'
+    +'.level-desc{font-size:13px;color:#4b5563;font-style:italic;margin-bottom:.4rem}'
+    +'.comment{font-size:14px;color:#374151;border-left:3px solid #4f46e5;padding-left:.75rem;margin-top:.4rem}'
+    +'.marker-tag{font-size:11px;font-weight:600;text-transform:uppercase;color:#6b7280;margin-right:4px}'
+    +'.double-mark-banner{background:#ede9fe;border:1px solid #4f46e5;border-radius:8px;padding:.75rem 1rem;margin-bottom:1.5rem;color:#3730a3}'
+    +'.total{background:#4f46e5;color:#fff;padding:1rem;border-radius:8px;text-align:center;font-size:22px;font-weight:700;margin-top:1.5rem}'
+    +'.mod-note{margin-top:1rem;font-size:13px;color:#6b7280;font-style:italic}</style></head><body>'
+    +'<h1>Assessment Feedback</h1>'
+    +'<p><strong>Student:</strong> '+student.name+' ('+student.id+')</p>'
+    +'<p><strong>Assessment:</strong> '+state.config.unitName+'</p>'
+    + markingSummary
     +'<h2>Rubric breakdown</h2>'+rows
-    +(g&&g.overallComment?'<h2>Overall feedback</h2><p>'+g.overallComment+'</p>':'')
-    +(g&&g.overallComment2?'<h2>Second marker feedback</h2><p>'+g.overallComment2+'</p>':'')
+    + overallSection
     +'<div class="total">Final grade: '+grade+' / '+max+' ('+pct+'%)</div>'
     +(g&&g.moderatorNotes?'<p class="mod-note">Moderator note: '+g.moderatorNotes+'</p>':'')
     +'</body></html>';
 }
 
 // ─── TEACHERS ─────────────────────────────────────────────────────────────────
-function renderTeacherList(){
-  var el=document.getElementById('teacher-list-ui');if(!el)return;
-  if(!state.config.teachers||!state.config.teachers.length){el.innerHTML='<p class="text-muted">No additional teachers added.</p>';return;}
-  el.innerHTML=state.config.teachers.map(function(t,i){return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)"><div><strong>'+t.name+'</strong> <span class="text-muted">'+t.email+'</span></div><button class="btn-icon" onclick="removeTeacher('+i+')" style="color:var(--danger)">&#10005;</button></div>';}).join('');
+function renderTeacherList() {
+  var el = document.getElementById('teacher-list-ui'); if (!el) return;
+  if (!state.config.teachers||!state.config.teachers.length) { el.innerHTML='<p class="text-muted">No additional teachers added.</p>'; return; }
+  el.innerHTML = state.config.teachers.map(function(t,i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)">'
+      +'<div><strong>'+t.name+'</strong> <span class="text-muted">'+t.email+'</span></div>'
+      +'<button class="btn-icon" onclick="removeTeacher('+i+')" style="color:var(--danger)">&#10005;</button></div>';
+  }).join('');
 }
-function addTeacher(){
-  var name=document.getElementById('new-teacher-name').value.trim(),email=document.getElementById('new-teacher-email').value.trim();
-  if(!name||!email){alert('Please enter both name and email.');return;}
-  if(!state.config.teachers)state.config.teachers=[];
+
+function addTeacher() {
+  var name=document.getElementById('new-teacher-name').value.trim();
+  var email=document.getElementById('new-teacher-email').value.trim();
+  if (!name||!email) { alert('Please enter both name and email.'); return; }
+  if (!state.config.teachers) state.config.teachers=[];
   state.config.teachers.push({name:name,email:email});
-  document.getElementById('new-teacher-name').value='';document.getElementById('new-teacher-email').value='';
-  localStorage.setItem('rm_config',JSON.stringify(state.config));renderTeacherList();
+  document.getElementById('new-teacher-name').value='';
+  document.getElementById('new-teacher-email').value='';
+  localStorage.setItem('rm_config',JSON.stringify(state.config));
+  renderTeacherList();
 }
-function removeTeacher(i){state.config.teachers.splice(i,1);localStorage.setItem('rm_config',JSON.stringify(state.config));renderTeacherList();}
+
+function removeTeacher(i) { state.config.teachers.splice(i,1); localStorage.setItem('rm_config',JSON.stringify(state.config)); renderTeacherList(); }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
-function showTab(tab){
-  ['dashboard','mark','rubric','moderation','export','settings'].forEach(function(t){document.getElementById('tab-'+t).classList.toggle('hidden',t!==tab);});
-  document.querySelectorAll('.nav-tab').forEach(function(el){el.classList.toggle('active',(el.getAttribute('onclick')||'').indexOf("'"+tab+"'")>=0);});
-  if(tab==='dashboard')updateDashboard();
-  if(tab==='moderation')renderModerationList();
-  if(tab==='export')renderExportPreview();
-  if(tab==='rubric')renderRubricBuilder();
+function showTab(tab) {
+  ['dashboard','mark','rubric','moderation','export','settings'].forEach(function(t) {
+    document.getElementById('tab-'+t).classList.toggle('hidden', t!==tab);
+  });
+  document.querySelectorAll('.nav-tab').forEach(function(el) {
+    el.classList.toggle('active', (el.getAttribute('onclick')||'').indexOf("'"+tab+"'") >= 0);
+  });
+  if (tab==='dashboard')  updateDashboard();
+  if (tab==='moderation') renderModerationList();
+  if (tab==='export')     renderExportPreview();
+  if (tab==='rubric')     renderRubricBuilder();
 }
 
-if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+if (typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 </script>
 </body>
 </html>
