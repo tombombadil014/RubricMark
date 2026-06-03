@@ -444,7 +444,12 @@ window.addEventListener('DOMContentLoaded', function() {
 
 function acquireTokenSilent() {
   if (DEMO_MODE) return Promise.resolve();
-  return msalInstance.acquireTokenSilent({scopes:SCOPES}).then(function(r) {
+  var initPromise = msalInstance.initialized
+    ? Promise.resolve()
+    : msalInstance.initialize();
+  return initPromise.then(function() {
+    return msalInstance.acquireTokenSilent({scopes:SCOPES});
+  }).then(function(r) {
     state.accessToken = r.accessToken;
     state.user = {name:r.account.name, email:r.account.username};
   }).catch(function(e) {
