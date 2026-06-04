@@ -426,7 +426,9 @@ window.addEventListener('DOMContentLoaded', function() {
     auth:{clientId:CLIENT_ID,authority:'https://login.microsoftonline.com/common',redirectUri:REDIRECT_URI},
     cache:{cacheLocation:'sessionStorage',storeAuthStateInCookie:false}
   });
-  msalInstance.handleRedirectPromise().then(function(resp) {
+  msalInstance.initialize().then(function() {
+    return msalInstance.handleRedirectPromise();
+  }).then(function(resp) {
     if (resp) {
       state.accessToken = resp.accessToken;
       state.user = {name:resp.account.name, email:resp.account.username};
