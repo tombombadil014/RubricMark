@@ -153,22 +153,14 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
         <button class="btn" id="loc-btn-my" onclick="pickerStart('my')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
           <span style="font-size:20px">&#9729;</span><span style="font-weight:500">My OneDrive</span>
-          <span style="font-size:12px;color:var(--muted)">Folders in your drive</span>
+          <span style="font-size:12px;color:var(--muted)">Your folders + shortcuts</span>
         </button>
-        <button class="btn" id="loc-btn-shared" onclick="pickerStart('shared')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
-          <span style="font-size:20px">&#129309;</span><span style="font-weight:500">Shared with me</span>
-          <span style="font-size:12px;color:var(--muted)">Folders shared by others</span>
+        <button class="btn" id="loc-btn-teams" onclick="pickerStart('teams')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
+          <span style="font-size:20px">&#128101;</span><span style="font-weight:500">Teams / SharePoint</span>
+          <span style="font-size:12px;color:var(--muted)">Shared team folders</span>
         </button>
       </div>
-      <div style="border-top:1px solid var(--border);padding-top:.75rem">
-        <p class="text-muted" style="margin-bottom:.5rem;font-size:13px">Or paste a OneDrive share link:</p>
-        <div style="display:flex;gap:.5rem">
-          <input type="text" id="share-link-input" placeholder="https://1drv.ms/… or sharing URL"
-            style="flex:1;border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:13px">
-          <button class="btn btn-primary" onclick="pickerFromLink()">Connect</button>
-        </div>
-        <p id="share-link-error" style="display:none;font-size:12px;margin-top:.4rem"></p>
-      </div>
+      <p class="text-muted" style="font-size:12px">To access a shared folder, ask the owner to share it and use "Add shortcut to My OneDrive" — then it will appear under My OneDrive.</p>
     </div>
     <div id="setup-step-2" class="hidden" style="margin-top:1rem">
       <div id="picker-breadcrumb" style="font-size:13px;color:var(--muted);margin-bottom:.5rem;min-height:20px"></div>
@@ -640,7 +632,7 @@ function changeFolder() {
   document.getElementById('picker-selected').classList.add('hidden');
   document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
-  document.getElementById('loc-btn-shared').classList.remove('btn-primary');
+  document.getElementById('loc-btn-teams').classList.remove('btn-primary');
   document.getElementById('setup-screen').classList.remove('hidden');
 }
 
@@ -685,7 +677,7 @@ function pickerFromLink() {
 function pickerStart(loc) {
   picker.location = loc; pickerStack = [];
   document.getElementById('loc-btn-my').classList.toggle('btn-primary', loc === 'my');
-  document.getElementById('loc-btn-shared').classList.toggle('btn-primary', loc === 'shared');
+  document.getElementById('loc-btn-teams').classList.toggle('btn-primary', loc === 'teams');
   document.getElementById('setup-step-2').classList.remove('hidden');
   pickerLoad(null, null);
 }
@@ -728,7 +720,7 @@ function pickerLoad(parentId, driveId) {
     setTimeout(function() {
       if (!parentId) render(picker.location === 'my'
         ? [{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]
-        : [{id:'f005',name:'Shared Assessment Folder',count:4,driveId:'demo'},{id:'f006',name:'Dept Marking UNIT305',count:2,driveId:'demo'}]);
+        : [{id:'f005',name:'Teaching Team',count:4,driveId:'demo'},{id:'f006',name:'CAD Assessment Team',count:2,driveId:'demo'}]);
       else render([{id:parentId+'_s1',name:'Submissions',count:8,driveId:driveId||''},{id:parentId+'_s2',name:'Marking Guides',count:2,driveId:driveId||''}]);
     }, 400);
     return;
@@ -742,12 +734,20 @@ function pickerLoad(parentId, driveId) {
           return {id:ri?ri.id:i.id, name:i.name, count:(ri?(ri.folder&&ri.folder.childCount)||0:(i.folder&&i.folder.childCount)||0), driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
         }));
       }).catch(fail);
-    } else {
-      graphFetch('/me/drive/sharedWithMe?$select=id,name,folder,remoteItem').then(function(d) {
-        render((d.value||[]).filter(function(i){return i.folder||(i.remoteItem&&i.remoteItem.folder);}).map(function(i) {
-          var ri = i.remoteItem;
-          return {id:ri?ri.id:i.id, name:i.name, count:((ri&&ri.folder)||i.folder||{}).childCount||0, driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
-        }));
+    } else if (picker.location === 'teams') {
+      // List all Teams/SharePoint sites the user is a member of
+      graphFetch('/me/joinedTeams?$select=id,displayName').then(function(d) {
+        var teams = d.value||[];
+        if (!teams.length) { fail(new Error('No Teams found. Make sure you are a member of a team in Microsoft Teams.')); return; }
+        // For each team, get the SharePoint document library
+        var promises = teams.map(function(team) {
+          return graphFetch('/groups/'+team.id+'/drive?$select=id,name,webUrl').then(function(drive) {
+            return {id:drive.id, name:team.displayName, count:0, driveId:drive.id, isTeamDrive:true};
+          }).catch(function(){return null;});
+        });
+        Promise.all(promises).then(function(results) {
+          render(results.filter(Boolean));
+        });
       }).catch(fail);
     }
   } else {
@@ -767,7 +767,7 @@ function pickerEnter(id, name, driveId) { pickerStack.push({id:id,name:name,driv
 
 function pickerDrawBreadcrumb() {
   var el = document.getElementById('picker-breadcrumb'); if (!el) return;
-  var root = picker.location === 'my' ? 'My OneDrive' : 'Shared with me';
+  var root = picker.location === 'my' ? 'My OneDrive' : 'Teams / SharePoint';
   var html = '<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">&#128193; '+root+'</span>';
   pickerStack.forEach(function(f, i) {
     html += ' <span style="color:var(--muted)">&#8250;</span> ';
@@ -793,7 +793,7 @@ function pickerBack() {
   document.getElementById('picker-selected').classList.add('hidden');
   document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
-  document.getElementById('loc-btn-shared').classList.remove('btn-primary');
+  document.getElementById('loc-btn-teams').classList.remove('btn-primary');
 }
 
 function completeSetup() {
