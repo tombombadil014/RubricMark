@@ -367,7 +367,7 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 var CLIENT_ID    = 'ccca83e7-7a6d-41f0-a304-7bfbee3c1179';
 var REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
-var SCOPES       = ['User.Read','Files.ReadWrite','Team.ReadBasic.All','Sites.Read.All'];
+var SCOPES       = ['User.Read','Files.ReadWrite','Team.ReadBasic.All'];
 var DEMO_MODE    = (CLIENT_ID === 'YOUR_CLIENT_ID_HERE');
 var GRAPH        = 'https://graph.microsoft.com/v1.0';
 
@@ -735,14 +735,22 @@ function pickerLoad(parentId, driveId) {
         }));
       }).catch(fail);
     } else if (picker.location === 'teams') {
-      // List all Teams/SharePoint sites the user is a member of
       graphFetch('/me/joinedTeams?$select=id,displayName').then(function(d) {
         var teams = d.value||[];
-        if (!teams.length) { fail(new Error('No Teams found. Make sure you are a member of a team in Microsoft Teams.')); return; }
-        // For each team, get the SharePoint document library
+        if (!teams.length) { fail(new Error('No Teams found.')); return; }
         var promises = teams.map(function(team) {
-          return graphFetch('/groups/'+team.id+'/drive?$select=id,name,webUrl').then(function(drive) {
-            return {id:drive.id, name:team.displayName, count:0, driveId:drive.id, isTeamDrive:true};
+          // Use channels/filesFolder which only needs Team.ReadBasic.All
+          return graphFetch('/teams/'+team.id+'/channels').then(function(ch) {
+            var general = (ch.value||[]).find(function(c){return c.displayName==='General';}) || (ch.value||[])[0];
+            if (!general) return null;
+            return graphFetch('/teams/'+team.id+'/channels/'+general.id+'/filesFolder').then(function(folder) {
+              return {
+                id: folder.id,
+                name: team.displayName,
+                count: 0,
+                driveId: folder.parentReference && folder.parentReference.driveId
+              };
+            });
           }).catch(function(){return null;});
         });
         Promise.all(promises).then(function(results) {
