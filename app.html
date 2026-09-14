@@ -150,17 +150,25 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
     <h2>Select your assessment folder</h2>
     <p style="color:var(--muted);font-size:14px;margin-bottom:1.5rem">Choose the OneDrive folder containing student submissions.</p>
     <div id="setup-step-1">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem">
-        <button class="btn" id="loc-btn-my" onclick="pickerStart('my')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
-          <span style="font-size:20px">&#9729;</span><span style="font-weight:500">My OneDrive</span>
-          <span style="font-size:12px;color:var(--muted)">Your folders + shortcuts</span>
-        </button>
-        <button class="btn" id="loc-btn-teams" onclick="pickerStart('teams')" style="padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center">
-          <span style="font-size:20px">&#128101;</span><span style="font-weight:500">Teams / SharePoint</span>
-          <span style="font-size:12px;color:var(--muted)">Shared team folders</span>
-        </button>
+      <button class="btn" id="loc-btn-my" onclick="pickerStart('my')" style="width:100%;padding:.75rem;flex-direction:column;gap:4px;height:auto;text-align:center;margin-bottom:.75rem">
+        <span style="font-size:20px">&#9729;</span><span style="font-weight:500">My OneDrive</span>
+        <span style="font-size:12px;color:var(--muted)">Your own folders</span>
+      </button>
+      <div style="display:flex;align-items:center;gap:.6rem;margin:1.1rem 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em">OR</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
-      <p class="text-muted" style="font-size:12px">To access a shared folder, ask the owner to share it and use "Add shortcut to My OneDrive" — then it will appear under My OneDrive.</p>
+      <div class="form-group" style="margin-bottom:.5rem">
+        <label for="share-link-input">Paste a shared folder link</label>
+        <input type="text" id="share-link-input" placeholder="https://xxx-my.sharepoint.com/:f:/... or https://1drv.ms/f/...">
+        <p class="text-muted" style="font-size:12px;margin-top:5px">
+          Use this when a folder was shared directly with your account (not as a OneDrive shortcut) — the picker above can't see those.
+          Ask the folder owner to right-click the folder &rarr; <strong>Share</strong> &rarr; <strong>Copy link</strong> (choosing "People with existing access" is fine, since you already have permission) and send you that link.
+        </p>
+      </div>
+      <div id="share-link-error" class="hidden" style="margin-bottom:.75rem;padding:.6rem .75rem;border-radius:var(--radius);font-size:13px"></div>
+      <button class="btn btn-primary" style="width:100%" id="share-link-btn" onclick="pickerFromLink()">Use this link</button>
     </div>
     <div id="setup-step-2" class="hidden" style="margin-top:1rem">
       <div id="picker-breadcrumb" style="font-size:13px;color:var(--muted);margin-bottom:.5rem;min-height:20px"></div>
@@ -632,7 +640,8 @@ function changeFolder() {
   document.getElementById('picker-selected').classList.add('hidden');
   document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
-  document.getElementById('loc-btn-teams').classList.remove('btn-primary');
+  var linkInput = document.getElementById('share-link-input'); if (linkInput) linkInput.value = '';
+  var linkErr = document.getElementById('share-link-error'); if (linkErr) linkErr.classList.add('hidden');
   document.getElementById('setup-screen').classList.remove('hidden');
 }
 
@@ -646,38 +655,84 @@ function toggleSidebar() {
 }
 
 // ─── FOLDER PICKER ────────────────────────────────────────────────────────────
+function shareLinkErr(msg, tone) {
+  var el = document.getElementById('share-link-error');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = tone === 'info' ? 'var(--primary-light)' : 'var(--danger-light)';
+  el.style.color = tone === 'info' ? 'var(--primary)' : 'var(--danger)';
+  el.classList.remove('hidden');
+}
+
+function encodeShareUrl(url) {
+  // Graph's /shares endpoint wants a URL-safe, unpadded base64 string of the raw link,
+  // prefixed with "u!". See https://learn.microsoft.com/graph/api/shares-get
+  var b64 = btoa(unescape(encodeURIComponent(url)))
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
+  return 'u!' + b64;
+}
+
 function pickerFromLink() {
-  var link = document.getElementById('share-link-input').value.trim();
-  var errEl = document.getElementById('share-link-error');
-  errEl.style.display = 'none';
-  if (!link) { errEl.textContent = 'Please paste a share link.'; errEl.style.color='var(--danger)'; errEl.style.display='block'; return; }
-  var encoded = btoa(link).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  errEl.textContent = 'Resolving link...'; errEl.style.color='var(--muted)'; errEl.style.display='block';
+  var input = document.getElementById('share-link-input');
+  var btn = document.getElementById('share-link-btn');
+  var link = (input.value || '').trim();
+  document.getElementById('share-link-error').classList.add('hidden');
+
+  if (!link) { shareLinkErr('Please paste a share link first.'); return; }
+  if (!/^https?:\/\//i.test(link)) { shareLinkErr('That doesn\'t look like a link — it should start with https://'); return; }
+
+  // A plain "browse to this folder" URL from the OneDrive/SharePoint web app
+  // (onedrive.aspx / Doc.aspx / _layouts) is NOT a resolvable sharing link —
+  // it doesn't carry a share token, so /shares/ will reject it. Catch this
+  // early with a specific, actionable message instead of a generic Graph error.
+  if (/_layouts\/15\/(onedrive|doc)\.aspx/i.test(link) || /\/personal\/[^/]+\/_layouts/i.test(link)) {
+    shareLinkErr('That\'s a browser address-bar link, not a sharing link — Microsoft Graph can\'t resolve it. Ask the folder owner to right-click the folder in OneDrive → Share → Copy link, and paste that link instead (this works even though you already have access — "People with existing access" is fine).');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Resolving link...';
+  shareLinkErr('Resolving link...', 'info');
+
+  var encoded = encodeShareUrl(link);
+
   acquireTokenSilent().then(function() {
-    return fetch(GRAPH+'/shares/u!'+encoded+'/driveItem?$select=id,name,folder,parentReference', {
+    return fetch(GRAPH+'/shares/'+encoded+'/driveItem?$select=id,name,folder,parentReference', {
       headers:{Authorization:'Bearer '+state.accessToken}
     });
   }).then(function(res) {
-    if (!res.ok) return res.text().then(function(t) { throw new Error('Could not resolve link ('+res.status+'). Make sure the link is a valid OneDrive share link.'); });
+    if (!res.ok) {
+      return res.text().then(function(t) {
+        var friendly;
+        if (res.status === 400) friendly = 'This link doesn\'t look like a valid OneDrive/SharePoint sharing link. Make sure it was created via Share → Copy link (not copied from the browser address bar).';
+        else if (res.status === 401) friendly = 'Your sign-in has expired — please sign out and back in, then try the link again.';
+        else if (res.status === 403) friendly = 'Sign-in worked, but Microsoft 365 is refusing access to this item (403). This can be a genuine permissions issue, or in some tenants an admin-configured sharing/Conditional Access policy blocking the app. Worth confirming with IT if it persists.';
+        else if (res.status === 404) friendly = 'The link couldn\'t be resolved (404) — it may have expired, been revoked, or point to something that\'s been moved or deleted. Ask the owner for a fresh link.';
+        else friendly = 'Graph returned an unexpected error (HTTP '+res.status+'). Details: '+t;
+        throw new Error(friendly);
+      });
+    }
     return res.json();
   }).then(function(item) {
-    if (!item.folder) throw new Error('This link points to a file, not a folder.');
+    if (!item.folder) throw new Error('That link points to a file, not a folder. Please share the assignment submissions folder itself.');
     var driveId = item.parentReference && item.parentReference.driveId;
-    errEl.style.display = 'none';
+    document.getElementById('share-link-error').classList.add('hidden');
     document.getElementById('setup-step-2').classList.remove('hidden');
     document.getElementById('picker-breadcrumb').innerHTML = '<span style="color:var(--muted)">Connected via share link</span>';
     document.getElementById('picker-loading').style.display = 'none';
     document.getElementById('picker-list').style.display = 'none';
     pickerConfirm(item.id, item.name, driveId || '');
   }).catch(function(e) {
-    errEl.textContent = e.message; errEl.style.color='var(--danger)'; errEl.style.display='block';
+    shareLinkErr(e.message);
+  }).finally(function() {
+    btn.disabled = false; btn.textContent = 'Use this link';
   });
 }
 
 function pickerStart(loc) {
   picker.location = loc; pickerStack = [];
   document.getElementById('loc-btn-my').classList.toggle('btn-primary', loc === 'my');
-  document.getElementById('loc-btn-teams').classList.toggle('btn-primary', loc === 'teams');
   document.getElementById('setup-step-2').classList.remove('hidden');
   pickerLoad(null, null);
 }
@@ -718,46 +773,19 @@ function pickerLoad(parentId, driveId) {
 
   if (DEMO_MODE || state.accessToken === 'demo_token') {
     setTimeout(function() {
-      if (!parentId) render(picker.location === 'my'
-        ? [{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]
-        : [{id:'f005',name:'Teaching Team',count:4,driveId:'demo'},{id:'f006',name:'CAD Assessment Team',count:2,driveId:'demo'}]);
+      if (!parentId) render([{id:'f001',name:'UNIT101 Assessments',count:3,driveId:''},{id:'f002',name:'UNIT203 Assignments',count:2,driveId:''}]);
       else render([{id:parentId+'_s1',name:'Submissions',count:8,driveId:driveId||''},{id:parentId+'_s2',name:'Marking Guides',count:2,driveId:driveId||''}]);
     }, 400);
     return;
   }
 
   if (!parentId) {
-    if (picker.location === 'my') {
-      graphFetch('/me/drive/root/children?$select=id,name,folder,remoteItem&$top=100').then(function(d) {
-        render((d.value||[]).filter(function(i){return i.folder||i.remoteItem;}).map(function(i) {
-          var ri = i.remoteItem;
-          return {id:ri?ri.id:i.id, name:i.name, count:(ri?(ri.folder&&ri.folder.childCount)||0:(i.folder&&i.folder.childCount)||0), driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
-        }));
-      }).catch(fail);
-    } else if (picker.location === 'teams') {
-      graphFetch('/me/joinedTeams?$select=id,displayName').then(function(d) {
-        var teams = d.value||[];
-        if (!teams.length) { fail(new Error('No Teams found.')); return; }
-        var promises = teams.map(function(team) {
-          // Use channels/filesFolder which only needs Team.ReadBasic.All
-          return graphFetch('/teams/'+team.id+'/channels').then(function(ch) {
-            var general = (ch.value||[]).find(function(c){return c.displayName==='General';}) || (ch.value||[])[0];
-            if (!general) return null;
-            return graphFetch('/teams/'+team.id+'/channels/'+general.id+'/filesFolder').then(function(folder) {
-              return {
-                id: folder.id,
-                name: team.displayName,
-                count: 0,
-                driveId: folder.parentReference && folder.parentReference.driveId
-              };
-            });
-          }).catch(function(){return null;});
-        });
-        Promise.all(promises).then(function(results) {
-          render(results.filter(Boolean));
-        });
-      }).catch(fail);
-    }
+    graphFetch('/me/drive/root/children?$select=id,name,folder,remoteItem&$top=100').then(function(d) {
+      render((d.value||[]).filter(function(i){return i.folder||i.remoteItem;}).map(function(i) {
+        var ri = i.remoteItem;
+        return {id:ri?ri.id:i.id, name:i.name, count:(ri?(ri.folder&&ri.folder.childCount)||0:(i.folder&&i.folder.childCount)||0), driveId:(ri&&ri.parentReference&&ri.parentReference.driveId)||''};
+      }));
+    }).catch(fail);
   } else {
     var path = driveId
       ? '/drives/'+driveId+'/items/'+parentId+'/children?$select=id,name,folder,remoteItem&$top=100'
@@ -775,7 +803,7 @@ function pickerEnter(id, name, driveId) { pickerStack.push({id:id,name:name,driv
 
 function pickerDrawBreadcrumb() {
   var el = document.getElementById('picker-breadcrumb'); if (!el) return;
-  var root = picker.location === 'my' ? 'My OneDrive' : 'Teams / SharePoint';
+  var root = 'My OneDrive';
   var html = '<span style="cursor:pointer;color:var(--primary)" onclick="pickerGoTo(-1)">&#128193; '+root+'</span>';
   pickerStack.forEach(function(f, i) {
     html += ' <span style="color:var(--muted)">&#8250;</span> ';
@@ -801,7 +829,8 @@ function pickerBack() {
   document.getElementById('picker-selected').classList.add('hidden');
   document.getElementById('continue-btn').disabled = true;
   document.getElementById('loc-btn-my').classList.remove('btn-primary');
-  document.getElementById('loc-btn-teams').classList.remove('btn-primary');
+  var linkErr = document.getElementById('share-link-error');
+  if (linkErr) linkErr.classList.add('hidden');
 }
 
 function completeSetup() {
