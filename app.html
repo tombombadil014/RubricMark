@@ -705,11 +705,14 @@ function pickerFromLink() {
     if (!res.ok) {
       return res.text().then(function(t) {
         var friendly;
+        var code = '', gmsg = '';
+        try { var parsed = JSON.parse(t); code = (parsed.error&&parsed.error.code)||''; gmsg = (parsed.error&&parsed.error.message)||''; } catch(e) {}
         if (res.status === 400) friendly = 'This link doesn\'t look like a valid OneDrive/SharePoint sharing link. Make sure it was created via Share → Copy link (not copied from the browser address bar).';
         else if (res.status === 401) friendly = 'Your sign-in has expired — please sign out and back in, then try the link again.';
-        else if (res.status === 403) friendly = 'Sign-in worked, but Microsoft 365 is refusing access to this item (403). This can be a genuine permissions issue, or in some tenants an admin-configured sharing/Conditional Access policy blocking the app. Worth confirming with IT if it persists.';
+        else if (res.status === 403) friendly = 'Sign-in worked, but Microsoft 365 is refusing access to this item (403). This can mean the link type doesn\'t match the account you\'re signed into RubricMark with (e.g. a "Specific people" link sent to a different address than the one you signed in with), a genuine permissions gap, or — less commonly — an admin-configured sharing/Conditional Access policy blocking this app. The exact reason matters for what to do next, so check the details below.';
         else if (res.status === 404) friendly = 'The link couldn\'t be resolved (404) — it may have expired, been revoked, or point to something that\'s been moved or deleted. Ask the owner for a fresh link.';
-        else friendly = 'Graph returned an unexpected error (HTTP '+res.status+'). Details: '+t;
+        else friendly = 'Graph returned an unexpected error (HTTP '+res.status+').';
+        friendly += ' [Details: '+(code||('HTTP '+res.status))+(gmsg?' — '+gmsg:'')+']';
         throw new Error(friendly);
       });
     }
