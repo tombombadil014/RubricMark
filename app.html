@@ -375,7 +375,8 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 var CLIENT_ID    = 'ccca83e7-7a6d-41f0-a304-7bfbee3c1179';
 var REDIRECT_URI = window.location.href.split('?')[0].split('#')[0];
-var SCOPES       = ['User.Read','Files.ReadWrite','Sites.Read.All'];
+var SCOPES       = ['User.Read','Files.ReadWrite'];
+var STEPUP_SCOPES = ['Sites.Read.All'];
 var DEMO_MODE    = (CLIENT_ID === 'YOUR_CLIENT_ID_HERE');
 var GRAPH        = 'https://graph.microsoft.com/v1.0';
 
@@ -696,26 +697,46 @@ function pickerFromLink() {
   shareLinkErr('Resolving link...', 'info');
 
   var encoded = encodeShareUrl(link);
+  var shareUrl = GRAPH+'/shares/'+encoded+'/driveItem?$select=id,name,folder,parentReference';
+
+  function friendlyError(status, bodyText, extraNote) {
+    var code = '', gmsg = '';
+    try { var parsed = JSON.parse(bodyText); code = (parsed.error&&parsed.error.code)||''; gmsg = (parsed.error&&parsed.error.message)||''; } catch(e) {}
+    var friendly;
+    if (status === 400) friendly = 'This link doesn\'t look like a valid OneDrive/SharePoint sharing link. Make sure it was created via Share → Copy link (not copied from the browser address bar).';
+    else if (status === 401) friendly = 'Your sign-in has expired — please sign out and back in, then try the link again.';
+    else if (status === 403) friendly = 'Sign-in worked, but Microsoft 365 is refusing access to this item (403).';
+    else if (status === 404) friendly = 'The link couldn\'t be resolved (404) — it may have expired, been revoked, or point to something that\'s been moved or deleted. Ask the owner for a fresh link.';
+    else friendly = 'Graph returned an unexpected error (HTTP '+status+').';
+    if (extraNote) friendly += ' ' + extraNote;
+    friendly += ' [Details: '+(code||('HTTP '+status))+(gmsg?' — '+gmsg:'')+']';
+    return new Error(friendly);
+  }
 
   acquireTokenSilent().then(function() {
-    return fetch(GRAPH+'/shares/'+encoded+'/driveItem?$select=id,name,folder,parentReference', {
-      headers:{Authorization:'Bearer '+state.accessToken}
-    });
+    return fetch(shareUrl, {headers:{Authorization:'Bearer '+state.accessToken}});
   }).then(function(res) {
-    if (!res.ok) {
-      return res.text().then(function(t) {
-        var friendly;
-        var code = '', gmsg = '';
-        try { var parsed = JSON.parse(t); code = (parsed.error&&parsed.error.code)||''; gmsg = (parsed.error&&parsed.error.message)||''; } catch(e) {}
-        if (res.status === 400) friendly = 'This link doesn\'t look like a valid OneDrive/SharePoint sharing link. Make sure it was created via Share → Copy link (not copied from the browser address bar).';
-        else if (res.status === 401) friendly = 'Your sign-in has expired — please sign out and back in, then try the link again.';
-        else if (res.status === 403) friendly = 'Sign-in worked, but Microsoft 365 is refusing access to this item (403). This can mean the link type doesn\'t match the account you\'re signed into RubricMark with (e.g. a "Specific people" link sent to a different address than the one you signed in with), a genuine permissions gap, or — less commonly — an admin-configured sharing/Conditional Access policy blocking this app. The exact reason matters for what to do next, so check the details below.';
-        else if (res.status === 404) friendly = 'The link couldn\'t be resolved (404) — it may have expired, been revoked, or point to something that\'s been moved or deleted. Ask the owner for a fresh link.';
-        else friendly = 'Graph returned an unexpected error (HTTP '+res.status+').';
-        friendly += ' [Details: '+(code||('HTTP '+res.status))+(gmsg?' — '+gmsg:'')+']';
-        throw new Error(friendly);
+    if (res.status === 403 && !DEMO_MODE) {
+      // Some "specific people" shares resolve through SharePoint's permission layer rather
+      // than plain OneDrive. Try stepping up to a broader scope just for this one action —
+      // if the tenant allows it, this retries transparently; if not, we get a clear signal
+      // instead of a generic 403.
+      shareLinkErr('Access denied with current permissions — requesting broader access for this item...', 'info');
+      return msalInstance.acquireTokenPopup({scopes:STEPUP_SCOPES}).then(function(r) {
+        state.accessToken = r.accessToken;
+        return fetch(shareUrl, {headers:{Authorization:'Bearer '+state.accessToken}});
+      }).catch(function(e) {
+        var msg = (e && e.message) || '';
+        var adminBlocked = /admin|consent|AADSTS/i.test(msg);
+        var note = adminBlocked
+          ? 'Requesting broader access to resolve this also failed — your Microsoft 365 admin has this app blocked from asking for extra permissions, so this specific link will need Deakin IT to approve it, or the folder owner will need to reshare it a different way.'
+          : 'Also tried requesting broader access, but that failed too: '+msg;
+        return res.text().then(function(t) { throw friendlyError(res.status, t, note); });
       });
     }
+    return res;
+  }).then(function(res) {
+    if (!res.ok) return res.text().then(function(t) { throw friendlyError(res.status, t, ''); });
     return res.json();
   }).then(function(item) {
     if (!item.folder) throw new Error('That link points to a file, not a folder. Please share the assignment submissions folder itself.');
