@@ -159,14 +159,6 @@ input,select,textarea{font-family:inherit;font-size:14px;outline:none}
         <span style="font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.04em">OR</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
-      <div class="form-group" style="margin-bottom:.5rem">
-        <label for="share-link-input">Paste a shared folder link</label>
-        <input type="text" id="share-link-input" placeholder="https://xxx-my.sharepoint.com/:f:/... or https://1drv.ms/f/...">
-        <p class="text-muted" style="font-size:12px;margin-top:5px">
-          Use this when a folder was shared directly with your account (not as a OneDrive shortcut) — the picker above can't see those.
-          Ask the folder owner to right-click the folder &rarr; <strong>Share</strong> &rarr; <strong>Copy link</strong> (choosing "People with existing access" is fine, since you already have permission) and send you that link.
-        </p>
-      </div>
       <div id="share-link-error" class="hidden" style="margin-bottom:.75rem;padding:.6rem .75rem;border-radius:var(--radius);font-size:13px"></div>
       <button class="btn btn-primary" style="width:100%" id="share-link-btn" onclick="pickerFromLink()">Use this link</button>
     </div>
